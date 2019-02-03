@@ -58,7 +58,7 @@ fi
 # Setup Homebridge
 if [ -d "${PIFILES_DIRECTORY}/homebridge" ]; then
     mkdir -p "${HOME}/.homebridge"
-    cp -Rf "${PIFILES_DIRECTORY}/homebridge/" "${HOME}/.homebridge"
+    cp -Rf "${PIFILES_DIRECTORY}/homebridge/." "${HOME}/.homebridge"
     for plugin in ${HOME}/.homebridge/*; do
         if [ -d "${plugin}" ]; then
             docker run -d --restart=unless-stopped --net=host --name=homebridge-$(basename "${plugin}") -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v ${plugin}/:/homebridge oznu/homebridge:raspberry-pi
@@ -71,8 +71,8 @@ fi
 # Setup DDNS53
 if [ -d "${PIFILES_DIRECTORY}/ddns53" ]; then
     mkdir -p "${HOME}/.ddns53"
-    cp -Rf "${PIFILES_DIRECTORY}/ddns53/" "${HOME}/.ddns53"
-    docker run -d --restart=unless-stopped --net=host --name=ddns53 --env-file=~/.ddns53/config smockle/ddns53
+    cp -Rf "${PIFILES_DIRECTORY}/ddns53/." "${HOME}/.ddns53"
+    docker run -d --restart=unless-stopped --net=host --name=ddns53 --env-file="${HOME}/.ddns53/config" smockle/ddns53
 else
     echo "Missing ddns53 configuration. Skipping ddns53 setup."
 fi
