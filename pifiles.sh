@@ -4,10 +4,10 @@ set -eo pipefail
 PIFILES_DIRECTORY=$(dirname "$(readlink -f "$0")")
 
 # Add Docker repository
-curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
-sudo tee /etc/apt/sources.list.d/docker.list << EOF
-deb [arch=armhf] https://download.docker.com/linux/raspbian stretch stable
-EOF
+if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
+    curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
+    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian stretch stable" | sudo tee /etc/apt/sources.list.d/docker.list
+fi
 
 # Update package lists
 sudo apt-get update -y
