@@ -19,7 +19,6 @@ sudo apt-get install -y docker-ce git vim unattended-upgrades apt-listchanges
 
 # Add user to docker group
 sudo gpasswd -a `whoami` docker
-newgrp docker
 
 # Set timezone 
 sudo timedatectl set-timezone "America/Los_Angeles"
