@@ -72,7 +72,7 @@ fi
 if [ -d "${PIFILES_DIRECTORY}/ddns53" ]; then
     mkdir -p "${HOME}/.ddns53"
     cp -Rf "${PIFILES_DIRECTORY}/ddns53/." "${HOME}/.ddns53"
-    docker run -d --restart=unless-stopped --net=host --name=ddns53 --env-file="${HOME}/.ddns53/config" smockle/ddns53
+    docker run -d --restart=unless-stopped --name=ddns53 --env-file="${HOME}/.ddns53/config" smockle/ddns53
 else
     echo "Missing ddns53 configuration. Skipping ddns53 setup."
 fi
