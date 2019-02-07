@@ -28,12 +28,13 @@ sudo timedatectl set-timezone "America/Los_Angeles"
 
 # Use CloudFlare DNS servers
 if ! grep -qF -- "static domain_name_servers=1.1.1.1 1.0.0.1" /etc/dhcpcd.conf; then
-    sudo echo "static domain_name_servers=1.1.1.1 1.0.0.1" >> /etc/dhcpcd.conf
+    echo "static domain_name_servers=1.1.1.1 1.0.0.1" | sudo tee -a /etc/dhcpcd.conf
 fi
 
 # Configure unattended upgrades
 if [ -f /etc/apt/apt.conf.d/50unattended-upgrades ]; then
     # Specify which packages can be updated
+    # shellcheck disable=SC1004
     sudo sed -i.bak '/^\s*Unattended-Upgrade::Origins-Pattern [{]\s*$/,/^[}][;]\s*$/c\
 Unattended-Upgrade::Origins-Pattern {\
     "origin=Debian,codename=${distro_codename},label=Debian-Security";\
@@ -62,15 +63,15 @@ fi
 if [ -d "${PIFILES_DIRECTORY}/homebridge" ]; then
     mkdir -p "${HOME}/.homebridge"
     cp -Rf "${PIFILES_DIRECTORY}/homebridge/." "${HOME}/.homebridge"
-    for plugin in ${HOME}/.homebridge/*; do
+    for plugin in "${HOME}"/.homebridge/*; do
         if [ -d "${plugin}" ]; then
             CONTAINER_NAME="homebridge-$(basename "${plugin}")"
-            if [ $(docker ps --filter name="${CONTAINER_NAME}" -q) ]; then
+            if [ "$(docker ps --filter name="${CONTAINER_NAME}" -q)" ]; then
                 docker stop "${CONTAINER_NAME}"
                 docker rm "${CONTAINER_NAME}"
             fi
             docker pull oznu/homebridge:raspberry-pi
-            docker run -d --restart=unless-stopped --net=host --name="${CONTAINER_NAME}" -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v ${plugin}/:/homebridge oznu/homebridge:raspberry-pi
+            docker run -d --restart=unless-stopped --net=host --name="${CONTAINER_NAME}" -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v "${plugin}"/:/homebridge oznu/homebridge:raspberry-pi
         fi
     done
 else
@@ -81,7 +82,7 @@ fi
 if [ -d "${PIFILES_DIRECTORY}/ddns53" ]; then
     mkdir -p "${HOME}/.ddns53"
     cp -Rf "${PIFILES_DIRECTORY}/ddns53/." "${HOME}/.ddns53"
-    if [ $(docker ps --filter name=ddns53 -q) ]; then
+    if [ "$(docker ps --filter name=ddns53 -q)" ]; then
         docker stop ddns53
         docker rm ddns53
     fi
