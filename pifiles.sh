@@ -18,7 +18,10 @@ sudo apt-get dist-upgrade -y
 sudo apt-get install -y docker-ce git vim unattended-upgrades apt-listchanges
 
 # Add user to docker group
-sudo gpasswd -a `whoami` docker
+if ! groups "$(whoami)" | grep -Fq docker; then
+    sudo gpasswd -a "$(whoami)" docker
+    RESTART_REQUIRED="true"
+fi
 
 # Set timezone 
 sudo timedatectl set-timezone "America/Los_Angeles"
@@ -88,6 +91,7 @@ else
     echo "Missing ddns53 configuration. Skipping ddns53 setup."
 fi
 
-echo "Pi setup is almost complete. Pi will reboot in 10 seconds to complete setup. Press ^C to cancel reboot."
-sleep 10
-sudo reboot
+if [ -n "${RESTART_REQUIRED}" ]; then
+    echo "Pi setup is almost complete. Pi will reboot in 10 seconds to complete setup. Press ^C to cancel reboot."
+    sleep 10 && sudo reboot &
+fi
