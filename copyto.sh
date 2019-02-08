@@ -5,12 +5,11 @@ copyto() {
   local PIHOST="${1}"
 
   # DDNS53
-  echo "Checking for a ddns53 configuration file in 'ddns53/config'"
-  if [ -f "${PWD}/ddns53/config" ]; then
+  echo "Checking for ddns53 configuration"
+  if [ -d "${PWD}/ddns53" ]; then
     echo "Found, copying"
-    scp "${PWD}/ddns53/config" "${PIHOST}:/tmp/ddns53.config"
     ssh "${PIHOST}" 'mkdir -p "${HOME}/.ddns53"'
-    ssh "${PIHOST}" 'mv -f /tmp/ddns53.config "${HOME}/.ddns53/config"'
+    scp -r "${PWD}/ddns53/." "${PIHOST}:~/.ddns53"
     echo "Done"
   else
     echo "Not found, skipping"
@@ -18,17 +17,16 @@ copyto() {
   echo ""
 
   # Homebridge
-  echo "Checking for a Homebridge configuration file in 'homebridge/config.json'"
-  if [ -f "${PWD}/homebridge/config.json" ]; then
+  echo "Checking for Homebridge configuration"
+  if [ -d "${PWD}/homebridge" ]; then
     echo "Found, copying"
-    scp "${PWD}/homebridge/config.json" "${PIHOST}:/tmp/homebridge.config.json"
     ssh "${PIHOST}" 'mkdir -p "${HOME}/.homebridge"'
-    ssh "${PIHOST}" 'mv -f /tmp/homebridge.config.json "${HOME}/.homebridge/config.json"'
+    scp -r "${PWD}/homebridge/." "${PIHOST}:~/.homebridge"
     echo "Done"
   else
     echo "Not found, skipping"
   fi
-
+  echo ""
   unset PIHOST
 }
 copyto "$@"
