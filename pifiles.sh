@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-PIFILES_DIRECTORY=$(dirname "$(readlink -f "$0")")
-
 # Add Docker repository
 if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
     curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
@@ -60,28 +58,19 @@ EOF
 fi
 
 # Setup Homebridge
-if [ -d "${PIFILES_DIRECTORY}/homebridge" ]; then
-    mkdir -p "${HOME}/.homebridge"
-    cp -Rf "${PIFILES_DIRECTORY}/homebridge/." "${HOME}/.homebridge"
-    for plugin in "${HOME}"/.homebridge/*; do
-        if [ -d "${plugin}" ]; then
-            CONTAINER_NAME="homebridge-$(basename "${plugin}")"
-            if [ "$(docker ps --filter name="${CONTAINER_NAME}" -q)" ]; then
-                docker stop "${CONTAINER_NAME}"
-                docker rm "${CONTAINER_NAME}"
-            fi
-            docker pull oznu/homebridge:raspberry-pi
-            docker run -d --restart=unless-stopped --net=host --name="${CONTAINER_NAME}" -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v "${plugin}"/:/homebridge oznu/homebridge:raspberry-pi
-        fi
-    done
+if [ -f "${HOME}/.homebridge/config.json" ]; then
+    if [ "$(docker ps --filter name=homebridge -q)" ]; then
+        docker stop homebridge
+        docker rm homebridge
+    fi
+    docker pull oznu/homebridge:raspberry-pi
+    docker run -d --restart=unless-stopped --net=host --name=homebridge -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v "${HOME}/.homebridge":/homebridge oznu/homebridge:raspberry-pi
 else
     echo "Missing Homebridge configuration. Skipping Homebridge setup."
 fi
 
 # Setup DDNS53
-if [ -d "${PIFILES_DIRECTORY}/ddns53" ]; then
-    mkdir -p "${HOME}/.ddns53"
-    cp -Rf "${PIFILES_DIRECTORY}/ddns53/." "${HOME}/.ddns53"
+if [ -d "${HOME}/.ddns53/config" ]; then
     if [ "$(docker ps --filter name=ddns53 -q)" ]; then
         docker stop ddns53
         docker rm ddns53
