@@ -70,7 +70,7 @@ else
 fi
 
 # Setup DDNS53
-if [ -d "${HOME}/.ddns53/config" ]; then
+if [ -f "${HOME}/.ddns53/config" ]; then
     if [ "$(docker ps --filter name=ddns53 -q)" ]; then
         docker stop ddns53
         docker rm ddns53
