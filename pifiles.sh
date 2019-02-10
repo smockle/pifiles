@@ -64,21 +64,57 @@ if [ -f "${HOME}/.homebridge/config.json" ]; then
         docker rm homebridge
     fi
     docker pull oznu/homebridge:raspberry-pi
-    docker run -d --restart=unless-stopped --net=host --name=homebridge -e PUID=1000 -e PGID=1000 -e TZ=America/Los_Angeles -v "${HOME}/.homebridge":/homebridge oznu/homebridge:raspberry-pi
+    docker run -d \
+        --restart=unless-stopped \
+        --net=host \
+        --name=homebridge \
+        -e PUID=1000 \
+        -e PGID=1000 \
+        -e TZ=America/Los_Angeles \
+        -v "${HOME}/.homebridge":/homebridge \
+        oznu/homebridge:raspberry-pi
 else
     echo "Missing Homebridge configuration. Skipping Homebridge setup."
 fi
 
 # Setup DDNS53
-if [ -f "${HOME}/.ddns53/config" ]; then
+if [ -f "${HOME}/.ddns53/env" ]; then
     if [ "$(docker ps --filter name=ddns53 -q)" ]; then
         docker stop ddns53
         docker rm ddns53
     fi
     docker pull smockle/ddns53:latest
-    docker run -d --restart=unless-stopped --name=ddns53 --env-file="${HOME}/.ddns53/config" smockle/ddns53:latest
+    docker run -d \
+        --restart=unless-stopped \
+        --name=ddns53 \
+        --env-file="${HOME}/.ddns53/env" \
+        smockle/ddns53:latest
 else
     echo "Missing ddns53 configuration. Skipping ddns53 setup."
+fi
+
+# Setup strongSwan
+if [ -f "${HOME}/.strongswan/env" ]; then
+    if [ "$(docker ps --filter name=strongswan -q)" ]; then
+        docker stop strongswan
+        docker rm strongswan
+    fi
+    docker pull smockle/alpine-strongswan:latest
+    docker run -d \
+        --restart=unless-stopped \
+        --cap-add=NET_ADMIN \
+        --net=host \
+        --name=strongswan \
+        --env-file="${HOME}/.strongswan/env" \
+        -e PUID=1000 \
+        -e PGID=1000 \
+        -v "${HOME}/.strongswan/config/strongswan.conf":/etc/strongswan.conf \
+        -v "${HOME}/.strongswan/config/ipsec.conf":/etc/ipsec.conf \
+        -v "${HOME}/.strongswan/config/ipsec.secrets":/etc/ipsec.secrets \
+        -v "${HOME}/.strongswan/config/ipsec.d":/etc/ipsec.d \
+        smockle/alpine-strongswan
+else
+    echo "Missing strongSwan configuration. Skipping strongSwan setup."
 fi
 
 if [ -n "${RESTART_REQUIRED}" ]; then

@@ -4,7 +4,19 @@ set -eo pipefail
 copyto() {
   local PIHOST="${1}"
 
-  # DDNS53
+  # Homebridge
+  echo "Checking for Homebridge configuration"
+  if [ -d "${PWD}/homebridge" ]; then
+    echo "Found, copying"
+    ssh "${PIHOST}" 'mkdir -p "${HOME}/.homebridge"'
+    scp -r "${PWD}/homebridge/." "${PIHOST}:~/.homebridge"
+    echo "Done"
+  else
+    echo "Not found, skipping"
+  fi
+  echo ""
+
+  # ddns53
   echo "Checking for ddns53 configuration"
   if [ -d "${PWD}/ddns53" ]; then
     echo "Found, copying"
@@ -16,12 +28,12 @@ copyto() {
   fi
   echo ""
 
-  # Homebridge
-  echo "Checking for Homebridge configuration"
-  if [ -d "${PWD}/homebridge" ]; then
+  # strongSwan
+  echo "Checking for strongSwan configuration"
+  if [ -d "${PWD}/strongswan" ]; then
     echo "Found, copying"
-    ssh "${PIHOST}" 'mkdir -p "${HOME}/.homebridge"'
-    scp -r "${PWD}/homebridge/." "${PIHOST}:~/.homebridge"
+    ssh "${PIHOST}" 'mkdir -p "${HOME}/.strongswan"'
+    scp -r "${PWD}/strongswan/." "${PIHOST}:~/.strongswan"
     echo "Done"
   else
     echo "Not found, skipping"
