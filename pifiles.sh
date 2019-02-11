@@ -116,9 +116,11 @@ if [ -f "${HOME}/.strongswan/env" ]; then
     sudo sed -i -E '/^(#)?( )?net\.ipv4\.ip_forward( )?=( )?[01]/d' /etc/sysctl.conf
     sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.forwarding( )?=( )?[01]/d' /etc/sysctl.conf
     sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.proxy_ndp( )?=( )?[01]/d' /etc/sysctl.conf
+    sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.accept_ra( )?=( )?[012]/d' /etc/sysctl.conf
     echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
     echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
     echo "net.ipv6.conf.all.proxy_ndp=1" | sudo tee -a /etc/sysctl.conf
+    echo "net.ipv6.conf.all.accept_ra=2" | sudo tee -a /etc/sysctl.conf
     sudo sysctl -p /etc/sysctl.conf
     sudo iptables -A FORWARD -j ACCEPT
 else
