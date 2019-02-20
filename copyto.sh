@@ -9,7 +9,7 @@ copyto() {
   if [ -d "${PWD}/homebridge" ]; then
     echo "Found, copying"
     ssh "${PIHOST}" 'mkdir -p "${HOME}/.homebridge"'
-    scp -r "${PWD}/homebridge/." "${PIHOST}:~/.homebridge"
+    scp -r "${PWD}"/homebridge/* "${PIHOST}:~/.homebridge"
     echo "Done"
   else
     echo "Not found, skipping"
@@ -21,7 +21,7 @@ copyto() {
   if [ -d "${PWD}/ddns53" ]; then
     echo "Found, copying"
     ssh "${PIHOST}" 'mkdir -p "${HOME}/.ddns53"'
-    scp -r "${PWD}/ddns53/." "${PIHOST}:~/.ddns53"
+    scp -r "${PWD}"/ddns53/* "${PIHOST}:~/.ddns53"
     echo "Done"
   else
     echo "Not found, skipping"
@@ -33,7 +33,7 @@ copyto() {
   if [ -d "${PWD}/strongswan" ]; then
     echo "Found, copying"
     ssh "${PIHOST}" 'mkdir -p "${HOME}/.strongswan"'
-    scp -r "${PWD}/strongswan/." "${PIHOST}:~/.strongswan"
+    scp -r "${PWD}"/strongswan/* "${PIHOST}:~/.strongswan"
     echo "Done"
   else
     echo "Not found, skipping"
