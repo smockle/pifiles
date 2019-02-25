@@ -57,6 +57,23 @@ APT::Periodic::Unattended-Upgrade "1";
 EOF
 fi
 
+# Setup SmartGlass
+if [ -f "${HOME}/.smartglass/tokens.json" ]; then
+    if [ "$(docker ps --filter name=smartglass -q)" ]; then
+        docker stop smartglass
+        docker rm smartglass
+    fi
+    docker pull smockle/xbox-smartglass-rest-python
+    docker run -d \
+        --restart=unless-stopped \
+        --name=smartglass \
+        -p 5557:5557 \
+        -v "${HOME}/.smartglass":/root/.local/share/xbox \
+        smockle/xbox-smartglass-rest-python
+else
+    echo "Missing SmartGlass configuration. Skipping SmartGlass setup."
+fi
+
 # Setup Homebridge
 if [ -f "${HOME}/.homebridge/config.json" ]; then
     if [ "$(docker ps --filter name=homebridge -q)" ]; then
