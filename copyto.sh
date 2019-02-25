@@ -4,6 +4,18 @@ set -eo pipefail
 copyto() {
   local PIHOST="${1}"
 
+  # SmartGlass
+  echo "Checking for SmartGlass configuration"
+  if [ -d "${PWD}/smartglass" ]; then
+    echo "Found, copying"
+    ssh "${PIHOST}" 'mkdir -p "${HOME}/.smartglass"'
+    scp -r "${PWD}"/smartglass/* "${PIHOST}:~/.smartglass"
+    echo "Done"
+  else
+    echo "Not found, skipping"
+  fi
+  echo ""
+
   # Homebridge
   echo "Checking for Homebridge configuration"
   if [ -d "${PWD}/homebridge" ]; then
