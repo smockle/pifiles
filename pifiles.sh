@@ -85,6 +85,8 @@ if [ -f "${HOME}/.homeassistant/configuration.yaml" ]; then
         --restart=unless-stopped \
         --net=host \
         --name=homeassistant \
+        -e PUID=1000 \
+        -e PGID=1000 \
         -v /etc/localtime:/etc/localtime:ro \
         -v "${HOME}/.homeassistant":/config \
         homeassistant/raspberrypi3-homeassistant
