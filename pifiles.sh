@@ -85,6 +85,8 @@ if [ -f "${HOME}/.homeassistant/configuration.yaml" ]; then
         --restart=unless-stopped \
         --net=host \
         --name=homeassistant \
+        --device=/dev/ttyUSB0 \
+        --device=/dev/ttyUSB1 \
         -e PUID=1000 \
         -e PGID=1000 \
         -v /etc/localtime:/etc/localtime:ro \
