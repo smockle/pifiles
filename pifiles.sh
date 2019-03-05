@@ -75,7 +75,7 @@ else
 fi
 
 # Setup Home Assistant
-if [ -f "${HOME}/.homeassistant/configuration.yml" ]; then
+if [ -f "${HOME}/.homeassistant/configuration.yaml" ]; then
     if [ "$(docker ps --filter name=homeassistant -q)" ]; then
         docker stop homeassistant
         docker rm homeassistant
