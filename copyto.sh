@@ -16,6 +16,18 @@ copyto() {
   fi
   echo ""
 
+  # Home Assistant
+  echo "Checking for Home Assistant configuration"
+  if [ -d "${PWD}/homeassistant" ]; then
+    echo "Found, copying"
+    ssh "${PIHOST}" 'mkdir -p "${HOME}/.homeassistant"'
+    scp -r "${PWD}"/homeassistant/* "${PIHOST}:~/.homeassistant"
+    echo "Done"
+  else
+    echo "Not found, skipping"
+  fi
+  echo ""
+
   # Homebridge
   echo "Checking for Homebridge configuration"
   if [ -d "${PWD}/homebridge" ]; then
