@@ -4,7 +4,7 @@ set -eo pipefail
 # Add Docker repository
 if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
     curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
-    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian buster stable" | sudo tee /etc/apt/sources.list.d/docker.list
+    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian buster nightly" | sudo tee /etc/apt/sources.list.d/docker.list
 fi
 
 # Update package lists
