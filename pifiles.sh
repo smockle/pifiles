@@ -64,7 +64,41 @@ APT::Periodic::Unattended-Upgrade "1";
 EOF
 fi
 
-# Setup SmartGlass
+# Set up Watchtower
+if [ "$(docker ps --filter name=watchtower -q)" ]; then
+    docker stop watchtower
+    docker rm watchtower
+fi
+docker pull containrrr/watchtower
+docker run -d \
+    --restart=unless-stopped \
+    --name=watchtower \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    containrrr/watchtower
+
+# Set up UniFi Controller
+if [ -d "${HOME}/.unifi/config" ]; then
+    if [ "$(docker ps --filter name=unifi -q)" ]; then
+        docker stop unifi
+        docker rm unifi
+    fi
+    docker pull ryansch/unifi-rpi:latest
+    docker run --init -d \
+        --restart=unless-stopped \
+        --net=host \
+        --name=unifi \
+        -v "${HOME}/.unifi/config":/var/lib/unifi \
+        -v "${HOME}/.unifi/log":/usr/lib/unifi/logs \
+        -v "${HOME}/.unifi/log2":/var/log/unifi \
+        -v "${HOME}/.unifi/run":/usr/lib/unifi/run \
+        -v "${HOME}/.unifi/run2":/run/unifi \
+        -v "${HOME}/.unifi/work":/usr/lib/unifi/work \
+        ryansch/unifi-rpi:latest
+else
+    echo "Missing UniFi Controller configuration. Skipping UniFi Controller setup."
+fi
+
+# Set up SmartGlass
 if [ -f "${HOME}/.smartglass/tokens.json" ]; then
     if [ "$(docker ps --filter name=smartglass -q)" ]; then
         docker stop smartglass
@@ -81,7 +115,7 @@ else
     echo "Missing SmartGlass configuration. Skipping SmartGlass setup."
 fi
 
-# Setup Home Assistant
+# Set up Home Assistant
 if [ -f "${HOME}/.homeassistant/configuration.yaml" ]; then
     if [ "$(docker ps --filter name=homeassistant -q)" ]; then
         docker stop homeassistant
@@ -100,10 +134,10 @@ if [ -f "${HOME}/.homeassistant/configuration.yaml" ]; then
         -v "${HOME}/.homeassistant":/config \
         homeassistant/raspberrypi3-homeassistant
 else
-    echo "Missing Home Assistants configuration. Skipping Home Assistant setup."
+    echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
 fi
 
-# Setup Homebridge
+# Set up Homebridge
 if [ -f "${HOME}/.homebridge/config.json" ]; then
     if [ "$(docker ps --filter name=homebridge -q)" ]; then
         docker stop homebridge
@@ -123,7 +157,7 @@ else
     echo "Missing Homebridge configuration. Skipping Homebridge setup."
 fi
 
-# Setup DDNS53
+# Set up DDNS53
 if [ -f "${HOME}/.ddns53/env" ]; then
     if [ "$(docker ps --filter name=ddns53 -q)" ]; then
         docker stop ddns53
@@ -139,7 +173,7 @@ else
     echo "Missing ddns53 configuration. Skipping ddns53 setup."
 fi
 
-# Setup strongSwan
+# Set up strongSwan
 if [ -f "${HOME}/.strongswan/env" ]; then
     if [ "$(docker ps --filter name=strongswan -q)" ]; then
         docker stop strongswan
