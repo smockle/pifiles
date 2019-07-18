@@ -13,7 +13,8 @@ sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
 
 # Install packages
-sudo apt-get install -y docker-ce git vim unattended-upgrades apt-listchanges
+sudo apt-get install -y git vim unattended-upgrades apt-listchanges
+sudo apt-get install -y --no-install-recommends docker-ce
 
 # Add user to docker group
 if ! groups "$(whoami)" | grep -Fq docker; then
