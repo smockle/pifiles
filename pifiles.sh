@@ -13,8 +13,14 @@ sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
 
 # Install packages
-sudo apt-get install -y git vim unattended-upgrades apt-listchanges
+sudo apt-get install -y git vim unattended-upgrades apt-listchanges zsh
 sudo apt-get install -y --no-install-recommends docker-ce
+
+# Set zsh as the default shell
+if [ "$SHELL" != "/bin/zsh" ]; then
+    sudo chsh -s "/bin/zsh"
+    chsh -s "/bin/zsh"
+fi
 
 # Add user to docker group
 if ! groups "$(whoami)" | grep -Fq docker; then
