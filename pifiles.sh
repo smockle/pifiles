@@ -4,7 +4,7 @@ set -eo pipefail
 # Add Docker repository
 if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
     curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
-    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian stretch stable" | sudo tee /etc/apt/sources.list.d/docker.list
+    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian buster stable" | sudo tee /etc/apt/sources.list.d/docker.list
 fi
 
 # Update package lists
@@ -22,7 +22,7 @@ if ! groups "$(whoami)" | grep -Fq docker; then
 fi
 
 # Set timezone 
-sudo timedatectl set-timezone "America/Los_Angeles"
+sudo timedatectl set-timezone "America/New_York"
 
 # Use CloudFlare DNS servers
 if ! grep -qF -- "static domain_name_servers=1.1.1.1 1.0.0.1" /etc/dhcpcd.conf; then
