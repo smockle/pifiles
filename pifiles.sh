@@ -150,7 +150,7 @@ if [ -f "${HOME}/.homebridge/config.json" ]; then
         --name=homebridge \
         -e PUID=1000 \
         -e PGID=1000 \
-        -e TZ=America/Los_Angeles \
+        -e TZ=America/New_York \
         -v "${HOME}/.homebridge":/homebridge \
         oznu/homebridge:raspberry-pi
 else
