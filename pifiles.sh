@@ -121,6 +121,13 @@ if [ -d "${HOME}/.homeassistant" ]; then
         docker stop homeassistant
         docker rm homeassistant
     fi
+    if [[ ! -d "${HOME}/Developer" ]]; then
+        mkdir "${HOME}/Developer"
+    fi
+    if [[ ! -d "${HOME}/Developer/open-zwave" ]]; then
+        git clone https://github.com/OpenZWave/open-zwave "${HOME}/Developer/open-zwave"
+    fi
+    (cd "${HOME}/Developer/open-zwave" && git checkout 1.4 && git pull)
 
     docker pull homeassistant/raspberrypi3-homeassistant
     docker run --init -d \
@@ -133,6 +140,7 @@ if [ -d "${HOME}/.homeassistant" ]; then
         -e PGID=1000 \
         -v /etc/localtime:/etc/localtime:ro \
         -v "${HOME}/.homeassistant":/config \
+        -v "${HOME}/Developer/open-zwave/config":/usr/local/lib/python3.7/site-packages/python_openzwave/ozw_config \
         homeassistant/raspberrypi3-homeassistant
 else
     echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
