@@ -121,7 +121,7 @@ if [ -d "${HOME}/.homeassistant" ]; then
         docker stop homeassistant
         docker rm homeassistant
     fi
-    if [ ! -d "${HOME}/Devloper"]; then
+    if [ ! -d "${HOME}/Devloper" ]; then
         mkdir "${HOME}/Developer"
     fi
     if [ ! -d "${HOME}/Developer/open-zwave" ]; then
