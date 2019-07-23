@@ -123,7 +123,7 @@ if [ -d "${HOME}/.homeassistant" ]; then
         docker rmi smockle/homeassistant
     fi
     docker pull homeassistant/raspberrypi3-homeassistant
-    docker build -t smockle/homeassistant homeassistant/Dockerfile
+    docker build -t smockle/homeassistant homeassistant
     docker run --init -d \
         --restart=unless-stopped \
         --net=host \
