@@ -120,10 +120,8 @@ if [ -d "${HOME}/.homeassistant" ]; then
     if [ "$(docker ps --filter name=homeassistant -q)" ]; then
         docker stop homeassistant
         docker rm homeassistant
-        docker rmi smockle/homeassistant
     fi
     docker pull homeassistant/raspberrypi3-homeassistant
-    docker build -t smockle/homeassistant homeassistant
     docker run --init -d \
         --restart=unless-stopped \
         --net=host \
@@ -134,7 +132,7 @@ if [ -d "${HOME}/.homeassistant" ]; then
         -e PGID=1000 \
         -v /etc/localtime:/etc/localtime:ro \
         -v "${HOME}/.homeassistant":/config \
-        smockle/homeassistant
+        homeassistant/raspberrypi3-homeassistant
 else
     echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
 fi
