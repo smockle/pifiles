@@ -140,7 +140,7 @@ if [ -d "${HOME}/.homeassistant" ]; then
         -e PGID=1000 \
         -v /etc/localtime:/etc/localtime:ro \
         -v "${HOME}/.homeassistant":/config \
-        -v "${HOME}/Developer/open-zwave/config":/usr/local/lib/python3.7/site-packages/python_openzwave/ozw_config
+        -v "${HOME}/Developer/open-zwave/config":/usr/local/lib/python3.7/site-packages/python_openzwave/ozw_config \
         homeassistant/raspberrypi3-homeassistant
 else
     echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
