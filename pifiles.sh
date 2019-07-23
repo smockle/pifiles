@@ -121,10 +121,10 @@ if [ -d "${HOME}/.homeassistant" ]; then
         docker stop homeassistant
         docker rm homeassistant
     fi
-    if [ ! -d "${HOME}/Devloper" ]; then
+    if [[ ! -d "${HOME}/Devloper" ]]; then
         mkdir "${HOME}/Developer"
     fi
-    if [ ! -d "${HOME}/Developer/open-zwave" ]; then
+    if [[ ! -d "${HOME}/Developer/open-zwave" ]]; then
         git clone https://github.com/OpenZWave/open-zwave "${HOME}/Developer/open-zwave"
     fi
     (cd "${HOME}/Developer/open-zwave" && git pull)
