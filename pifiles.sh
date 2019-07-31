@@ -137,29 +137,6 @@ else
     echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
 fi
 
-# Set up HomeSeer
-if [ -d "${HOME}/.homeseer" ]; then
-    if [ "$(docker ps --filter name=homeseer -q)" ]; then
-        docker stop homeseer
-        docker rm homeseer
-    fi
-    docker pull smockle/homeseer
-    docker run -d \
-        --restart=unless-stopped \
-        -p 8081:80 \
-        -p 10200:10200 \
-        -p 10300:10300 \
-        -p 10401:10401 \
-        -p 11000:11000 \
-        --name homeseer \
-        --device /dev/ttyUSB0 \
-        -v /etc/localtime:/etc/localtime:ro \
-        -v "${HOME}/.homeseer":/HomeSeer \
-        smockle/homeseer:latest
-else
-    echo "Missing HomeSeer configuration. Skipping HomeSeer setup."
-fi
-
 # Set up Homebridge
 if [ -f "${HOME}/.homebridge/config.json" ]; then
     if [ "$(docker ps --filter name=homebridge -q)" ]; then
