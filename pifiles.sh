@@ -143,7 +143,7 @@ if [ -d "${HOME}/.homeseer" ]; then
         docker stop homeseer
         docker rm homeseer
     fi
-    docker pull marthoc/homeseer
+    docker pull smockle/homeseer
     docker run -d \
         --restart=unless-stopped \
         -p 8081:80 \
@@ -155,7 +155,7 @@ if [ -d "${HOME}/.homeseer" ]; then
         --device /dev/ttyUSB0 \
         -v /etc/localtime:/etc/localtime:ro \
         -v "${HOME}/.homeseer":/HomeSeer \
-        marthoc/homeseer:latest
+        smockle/homeseer:latest
 else
     echo "Missing HomeSeer configuration. Skipping HomeSeer setup."
 fi
