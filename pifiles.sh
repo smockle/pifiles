@@ -115,28 +115,6 @@ else
     echo "Missing SmartGlass configuration. Skipping SmartGlass setup."
 fi
 
-# Set up Home Assistant
-if [ -d "${HOME}/.homeassistant" ]; then
-    if [ "$(docker ps --filter name=homeassistant -q)" ]; then
-        docker stop homeassistant
-        docker rm homeassistant
-    fi
-    docker pull homeassistant/raspberrypi3-homeassistant
-    docker run --init -d \
-        --restart=unless-stopped \
-        --net=host \
-        --name=homeassistant \
-        --device=/dev/ttyUSB0 \
-        --device=/dev/ttyUSB1 \
-        -e PUID=1000 \
-        -e PGID=1000 \
-        -v /etc/localtime:/etc/localtime:ro \
-        -v "${HOME}/.homeassistant":/config \
-        homeassistant/raspberrypi3-homeassistant
-else
-    echo "Missing Home Assistant configuration. Skipping Home Assistant setup."
-fi
-
 # Set up Homebridge
 if [ -f "${HOME}/.homebridge/config.json" ]; then
     if [ "$(docker ps --filter name=homebridge -q)" ]; then
