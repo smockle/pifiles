@@ -27,6 +27,17 @@ sudo apt-get install -y zsh vim \
     git pkg-config autoconf automake libtool libx264-dev \
     shairport-sync
 
+# Change install location for globally-installed NPM modules
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+sudo tee /etc/profile.d/npm-global.sh << EOF
+if [ -d "/home/pi/.npm-global" ] ; then
+    PATH="/home/pi/.npm-global/bin:$PATH"
+fi
+EOF
+sudo chmod +x /etc/profile.d/npm-global.sh
+source /etc/profile
+
 # Update NPM
 npm i -g npm@latest
 
@@ -72,17 +83,6 @@ APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
 fi
-
-# Change install location for globally-installed NPM modules
-mkdir ~/.npm-global
-npm config set prefix '~/.npm-global'
-sudo tee /etc/profile.d/npm-global.sh << EOF
-if [ -d "/home/pi/.npm-global" ] ; then
-    PATH="/home/pi/.npm-global/bin:$PATH"
-fi
-EOF
-sudo chmod +x /etc/profile.d/npm-global.sh
-source /etc/profile
 
 # Set up ffmpeg
 if [ ! -d /home/pi/Developer/fdk-aac ]; then
