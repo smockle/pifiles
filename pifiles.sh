@@ -85,24 +85,26 @@ EOF
 fi
 
 # Set up ffmpeg
-if [ ! -d /home/pi/Developer/fdk-aac ]; then
-    git clone https://github.com/mstorsjo/fdk-aac.git /home/pi/Developer/fdk-aac
-fi
-cd /home/pi/Developer/fdk-aac
-./autogen.sh
-./configure --prefix=/usr/local --enable-shared --enable-static
-make -j4
-sudo make install
-sudo ldconfig
+if ! which -a ffmpeg &>/dev/null; then
+    if [ ! -d /home/pi/Developer/fdk-aac ]; then
+        git clone https://github.com/mstorsjo/fdk-aac.git /home/pi/Developer/fdk-aac
+    fi
+    cd /home/pi/Developer/fdk-aac
+    ./autogen.sh
+    ./configure --prefix=/usr/local --enable-shared --enable-static
+    make -j4
+    sudo make install
+    sudo ldconfig
 
-if [ ! -d /home/pi/Developer/ffmpeg ]; then
-    git clone https://github.com/FFmpeg/FFmpeg.git /home/pi/Developer/ffmpeg
+    if [ ! -d /home/pi/Developer/ffmpeg ]; then
+        git clone https://github.com/FFmpeg/FFmpeg.git /home/pi/Developer/ffmpeg
+    fi
+    cd /home/pi/Developer/ffmpeg
+    ./configure --prefix=/usr/local --arch=armel --target-os=linux --enable-omx-rpi --enable-nonfree --enable-gpl --enable-libfdk-aac --enable-mmal --enable-libx264 --enable-decoder=h264 --enable-network --enable-protocol=tcp --enable-demuxer=rtsp
+    make -j4
+    sudo make install
+    cd /home/pi/Developer/pifiles
 fi
-cd /home/pi/Developer/ffmpeg
-./configure --prefix=/usr/local --arch=armel --target-os=linux --enable-omx-rpi --enable-nonfree --enable-gpl --enable-libfdk-aac --enable-mmal --enable-libx264 --enable-decoder=h264 --enable-network --enable-protocol=tcp --enable-demuxer=rtsp
-make -j4
-sudo make install
-cd /home/pi/Developer/pifiles
 
 # Set up Homebridge
 npm i -g homebridge
@@ -145,7 +147,7 @@ if [ ! -d /home/pi/Developer/ddns53 ]; then
     git clone https://github.com/smockle/ddns53 /home/pi/Developer/ddns53
 fi
 
-pip install --upgrade awscli
+pip3 install --upgrade awscli
 
 if [ ! -f /home/pi/.ddns53/env ]; then
 tee /home/pi/.ddns53/env << EOF
