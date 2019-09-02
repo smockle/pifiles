@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# Add Docker repository
-if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
-    curl -fsSL https://download.docker.com/linux/raspbian/gpg | sudo apt-key add -
-    echo "deb [arch=armhf] https://download.docker.com/linux/raspbian buster nightly" | sudo tee /etc/apt/sources.list.d/docker.list
+# Add Ubiquiti repository
+if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
+    curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
+    echo "deb https://www.ui.com/downloads/unifi/debian stable ubiquiti" | sudo tee /etc/apt/sources.list.d/ubiquiti.list
+fi
+
+# Add NodeSource repository
+if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+    echo "deb https://deb.nodesource.com/node_10.x buster main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 fi
 
 # Update package lists
@@ -13,19 +19,21 @@ sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
 
 # Install packages
-sudo apt-get install -y git vim unattended-upgrades apt-listchanges zsh
-sudo apt-get install -y --no-install-recommends docker-ce
+sudo apt-get install -y zsh vim \
+    unattended-upgrades apt-listchanges \
+    unifi openjdk-8-jre-headless haveged \
+    nodejs libavahi-compat-libdnssd-dev \
+    python3 python3-pip dnsutils \
+    git pkg-config autoconf automake libtool libx264-dev \
+    shairport-sync
+
+# Update NPM
+npm i -g npm@latest
 
 # Set zsh as the default shell
 if [ "$SHELL" != "/bin/zsh" ]; then
     sudo chsh -s "/bin/zsh"
     chsh -s "/bin/zsh"
-fi
-
-# Add user to docker group
-if ! groups "$(whoami)" | grep -Fq docker; then
-    sudo gpasswd -a "$(whoami)" docker
-    RESTART_REQUIRED="true"
 fi
 
 # Set timezone 
@@ -45,7 +53,8 @@ Unattended-Upgrade::Origins-Pattern {\
     "origin=Debian,codename=${distro_codename},label=Debian-Security";\
     "origin=Raspbian,codename=${distro_codename},label=Raspbian";\
     "origin=Raspberry Pi Foundation,codename=${distro_codename},label=Raspberry Pi Foundation";\
-    "origin=Docker,codename=${distro_codename},label=Docker CE";\
+    "origin=Ubiquiti Networks, Inc.,codename=stable,label=Ubiquiti Networks, Inc.";\
+    "origin=Node Source,codename=${distro_codename},label=Node Source";\
 };' /etc/apt/apt.conf.d/50unattended-upgrades
 sudo rm /etc/apt/apt.conf.d/50unattended-upgrades.bak
 
@@ -64,128 +73,114 @@ APT::Periodic::Unattended-Upgrade "1";
 EOF
 fi
 
-# Set up Watchtower
-if [ "$(docker ps --filter name=watchtower -q)" ]; then
-    docker stop watchtower
-    docker rm watchtower
+# Change install location for globally-installed NPM modules
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+sudo tee /etc/profile.d/npm-global.sh << EOF
+if [ -d "/home/pi/.npm-global" ] ; then
+    PATH="/home/pi/.npm-global/bin:$PATH"
 fi
-docker pull containrrr/watchtower
-docker run -d \
-    --restart=unless-stopped \
-    --name=watchtower \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    containrrr/watchtower
+EOF
+sudo chmod +x /etc/profile.d/npm-global.sh
+source /etc/profile
 
-# Set up UniFi Controller
-if [ -d "${HOME}/.unifi/config" ]; then
-    if [ "$(docker ps --filter name=unifi -q)" ]; then
-        docker stop unifi
-        docker rm unifi
-    fi
-    docker pull ryansch/unifi-rpi:latest
-    docker run --init -d \
-        --restart=unless-stopped \
-        --net=host \
-        --name=unifi \
-        -v "${HOME}/.unifi/config":/var/lib/unifi \
-        -v "${HOME}/.unifi/log":/usr/lib/unifi/logs \
-        -v "${HOME}/.unifi/log2":/var/log/unifi \
-        -v "${HOME}/.unifi/run":/usr/lib/unifi/run \
-        -v "${HOME}/.unifi/run2":/run/unifi \
-        -v "${HOME}/.unifi/work":/usr/lib/unifi/work \
-        ryansch/unifi-rpi:latest
-else
-    echo "Missing UniFi Controller configuration. Skipping UniFi Controller setup."
+# Set up ffmpeg
+if [ ! -d /home/pi/Developer/fdk-aac ]; then
+    git clone https://github.com/mstorsjo/fdk-aac.git /home/pi/Developer/fdk-aac
 fi
+cd /home/pi/Developer/fdk-aac
+./autogen.sh
+./configure --prefix=/usr/local --enable-shared --enable-static
+make -j4
+sudo make install
+sudo ldconfig
 
-# Set up SmartGlass
-if [ -f "${HOME}/.smartglass/tokens.json" ]; then
-    if [ "$(docker ps --filter name=smartglass -q)" ]; then
-        docker stop smartglass
-        docker rm smartglass
-    fi
-    docker pull smockle/xbox-smartglass-rest-python
-    docker run -d \
-        --restart=unless-stopped \
-        --name=smartglass \
-        -p 5557:5557 \
-        -v "${HOME}/.smartglass":/root/.local/share/xbox \
-        smockle/xbox-smartglass-rest-python
-else
-    echo "Missing SmartGlass configuration. Skipping SmartGlass setup."
+if [ ! -d /home/pi/Developer/ffmpeg ]; then
+    git clone https://github.com/FFmpeg/FFmpeg.git /home/pi/Developer/ffmpeg
 fi
+cd /home/pi/Developer/ffmpeg
+./configure --prefix=/usr/local --arch=armel --target-os=linux --enable-omx-rpi --enable-nonfree --enable-gpl --enable-libfdk-aac --enable-mmal --enable-libx264 --enable-decoder=h264 --enable-network --enable-protocol=tcp --enable-demuxer=rtsp
+make -j4
+sudo make install
+cd /home/pi/Developer/pifiles
 
 # Set up Homebridge
-if [ -f "${HOME}/.homebridge/config.json" ]; then
-    if [ "$(docker ps --filter name=homebridge -q)" ]; then
-        docker stop homebridge
-        docker rm homebridge
-    fi
-    docker pull oznu/homebridge:raspberry-pi
-    docker run -d \
-        --restart=unless-stopped \
-        --net=host \
-        --name=homebridge \
-        -e PUID=1000 \
-        -e PGID=1000 \
-        -e TZ=America/New_York \
-        -v "${HOME}/.homebridge":/homebridge \
-        oznu/homebridge:raspberry-pi
-else
-    echo "Missing Homebridge configuration. Skipping Homebridge setup."
-fi
+npm i -g homebridge
+
+sudo tee /etc/default/homebridge << EOF
+# The following settings tells homebridge where to find the config.json file
+# and where to persist the data
+HOMEBRIDGE_OPTS=-D -U /home/pi/.homebridge
+
+# If you uncomment the following line, homebridge will log more
+# DEBUG=*
+# You can display logs via systemd's journalctl: journalctl -fu homebridge
+EOF
+
+sudo tee /etc/systemd/system/homebridge.service << EOF
+[Unit]
+Description=Homebridge
+Wants=network-online.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=pi
+EnvironmentFile=/etc/default/homebridge
+ExecStart=/home/pi/.npm-global/bin/homebridge \$HOMEBRIDGE_OPTS
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable homebridge
+sudo systemctl start homebridge
 
 # Set up DDNS53
-if [ -f "${HOME}/.ddns53/env" ]; then
-    if [ "$(docker ps --filter name=ddns53 -q)" ]; then
-        docker stop ddns53
-        docker rm ddns53
-    fi
-    docker pull smockle/ddns53:latest
-    docker run -d \
-        --restart=unless-stopped \
-        --name=ddns53 \
-        --env-file="${HOME}/.ddns53/env" \
-        smockle/ddns53:latest
-else
-    echo "Missing ddns53 configuration. Skipping ddns53 setup."
+if [ ! -d /home/pi/Developer/ddns53 ]; then
+    git clone https://github.com/smockle/ddns53 /home/pi/Developer/ddns53
 fi
 
-# Set up strongSwan
-if [ -f "${HOME}/.strongswan/env" ]; then
-    if [ "$(docker ps --filter name=strongswan -q)" ]; then
-        docker stop strongswan
-        docker rm strongswan
-    fi
-    docker pull smockle/alpine-strongswan:latest
-    docker run -d \
-        --restart=unless-stopped \
-        --cap-add=NET_ADMIN \
-        --net=host \
-        --name=strongswan \
-        --env-file="${HOME}/.strongswan/env" \
-        -e PUID=1000 \
-        -e PGID=1000 \
-        -v "${HOME}/.strongswan/config/strongswan.conf":/etc/strongswan.conf \
-        -v "${HOME}/.strongswan/config/ipsec.conf":/etc/ipsec.conf \
-        -v "${HOME}/.strongswan/config/ipsec.secrets":/etc/ipsec.secrets \
-        -v "${HOME}/.strongswan/config/ipsec.d":/etc/ipsec.d \
-        smockle/alpine-strongswan
-    sudo sed -i -E '/^(#)?( )?net\.ipv4\.ip_forward( )?=( )?[01]/d' /etc/sysctl.conf
-    sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.forwarding( )?=( )?[01]/d' /etc/sysctl.conf
-    sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.proxy_ndp( )?=( )?[01]/d' /etc/sysctl.conf
-    sudo sed -i -E '/^(#)?( )?net\.ipv6\.conf\.all\.accept_ra( )?=( )?[012]/d' /etc/sysctl.conf
-    echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv6.conf.all.proxy_ndp=1" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv6.conf.all.accept_ra=2" | sudo tee -a /etc/sysctl.conf
-    sudo sysctl -p /etc/sysctl.conf
-    sudo iptables -A FORWARD -j ACCEPT
-else
-    echo "Missing strongSwan configuration. Skipping strongSwan setup."
+pip install --upgrade awscli
+
+if [ ! -f /home/pi/.ddns53/env ]; then
+tee /home/pi/.ddns53/env << EOF
+HOSTED_ZONE_ID=
+DOMAIN=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+EOF
 fi
 
-if [ -n "${RESTART_REQUIRED}" ]; then
-    echo "Pi setup is almost complete. Pi will reboot in 10 seconds to complete setup. Press ^C to cancel reboot."
-    sleep 10 && sudo reboot &
-fi
+sudo tee /etc/systemd/system/ddns53.service << EOF
+[Unit]
+Description=Periodically update an A record
+Wants=network-online.target
+After=syslog.target network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+EnvironmentFile=/home/pi/.ddns53/env
+ExecStart=/home/pi/Developer/ddns53/ddns53.sh
+EOF
+
+sudo tee /etc/systemd/system/ddns53.timer << EOF
+[Unit]
+Description=Periodically update an A record
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=15min
+
+[Install]
+WantedBy=timers.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable ddns53
+sudo systemctl start ddns53
