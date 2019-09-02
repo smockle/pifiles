@@ -28,7 +28,7 @@ sudo apt-get install -y zsh vim \
     shairport-sync
 
 # Change install location for globally-installed NPM modules
-mkdir ~/.npm-global
+mkdir -p ~/.npm-global
 npm config set prefix '~/.npm-global'
 sudo tee /etc/profile.d/npm-global.sh << EOF
 if [ -d "/home/pi/.npm-global" ] ; then
