@@ -107,7 +107,7 @@ if ! which -a ffmpeg &>/dev/null; then
 fi
 
 # Set up Homebridge
-npm i -g homebridge
+npm i -g homebridge homebridge-ring homebridge-smartthings-tonesto7
 
 sudo tee /etc/default/homebridge << EOF
 # The following settings tells homebridge where to find the config.json file
