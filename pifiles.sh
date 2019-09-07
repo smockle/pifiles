@@ -30,14 +30,21 @@ sudo apt-get install -y zsh vim \
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
 npm config set prefix '~/.npm-global'
-sudo sed -i 's/export PATH="\/usr\/local\/bin:\/usr\/bin:\/bin:\/usr\/games"/export PATH="\/home\/pi\/\.npm-global\/bin:\/usr\/local\/bin:\/usr\/bin:\/bin:\/usr\/games"/g' /etc/zsh/zshenv
+if ! grep -qF -- "/home/pi/.npm-global/bin" /etc/zsh/zshenv; then
+    echo 'export PATH="/home/pi/.npm-global/bin:$PATH"' | sudo tee -a /etc/zsh/zshenv
+fi
 sudo tee /etc/profile.d/npm-global.sh << EOF
 if [ -d "/home/pi/.npm-global" ] ; then
     PATH="/home/pi/.npm-global/bin:$PATH"
 fi
 EOF
 sudo chmod +x /etc/profile.d/npm-global.sh
-source /etc/profile
+if [[ "${SHELL}" == */bash ]]; then
+    source /etc/profile
+fi
+if [[ "${SHELL}" == */zsh ]]; then
+    source /etc/zsh/zshenv
+fi
 
 # Update NPM
 npm i -g npm@latest
