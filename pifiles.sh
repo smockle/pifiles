@@ -195,7 +195,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable ddns53.timer
 sudo systemctl start ddns53.timer
 
-# Set up Shairport Sync
+# Set up ShairportSync
 if ! groups pi | grep -Fq bluetooth; then		
     sudo gpasswd -a pi bluetooth
     RESTART_REQUIRED="true"
