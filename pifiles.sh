@@ -192,8 +192,6 @@ WantedBy=timers.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable ddns53.service
-sudo systemctl start ddns53.service
 sudo systemctl enable ddns53.timer
 sudo systemctl start ddns53.timer
 
