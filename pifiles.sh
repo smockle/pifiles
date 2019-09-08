@@ -24,8 +24,7 @@ sudo apt-get install -y zsh vim \
     unifi openjdk-8-jre-headless haveged \
     nodejs libavahi-compat-libdnssd-dev \
     python3 python3-pip dnsutils \
-    git pkg-config autoconf automake libtool libx264-dev \
-    shairport-sync bluealsa
+    git pkg-config autoconf automake libtool libx264-dev
 
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
@@ -194,18 +193,3 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable ddns53.timer
 sudo systemctl start ddns53.timer
-
-# Set up ShairportSync
-if ! groups pi | grep -Fq bluetooth; then		
-    sudo gpasswd -a pi bluetooth
-    RESTART_REQUIRED="true"
-fi
-if ! groups shairport-sync | grep -Fq bluetooth; then
-    sudo gpasswd -a shairport-sync bluetooth
-    RESTART_REQUIRED="true"
-fi
-
-if [ -n "${RESTART_REQUIRED}" ]; then
-    echo "Pi setup is almost complete. Pi will reboot in 10 seconds to complete setup. Press ^C to cancel reboot."
-    sleep 10 && sudo reboot &
-fi
