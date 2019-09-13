@@ -150,10 +150,6 @@ sudo systemctl enable homebridge
 sudo systemctl start homebridge
 
 # Set up DDNS53
-if [ ! -d /home/pi/Developer/ddns53 ]; then
-    git clone https://github.com/smockle/ddns53 /home/pi/Developer/ddns53
-fi
-
 pip3 install --upgrade awscli
 
 if [ ! -f /home/pi/.ddns53/env ]; then
@@ -175,7 +171,7 @@ After=syslog.target network-online.target
 Type=oneshot
 User=pi
 EnvironmentFile=/home/pi/.ddns53/env
-ExecStart=/home/pi/Developer/ddns53/ddns53.sh
+ExecStart=/home/pi/Developer/pifiles/ddns53.sh
 EOF
 
 sudo tee /etc/systemd/system/ddns53.timer << EOF

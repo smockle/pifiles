@@ -30,11 +30,3 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 8. Append the contents of the host’s public key to `~/.ssh/authorized_keys`, then prevent further writes: `chmod 444 ~/.ssh/authorized_keys`. Now, you’ll be able to connect to your Raspberry Pi using just `ssh pi`.
 
 9. Clone this repository on the Pi, and run `pifiles.sh` to complete setup. Your Pi will reboot.
-
-# Running applications
-
-`pifiles.sh` will run [ddns53](https://github.com/smockle/ddns53) & [homebridge](https://github.com/oznu/docker-homebridge) if configuration files are present. To start these applications:
-
-1. Run `copyto.sh pi` in a working directory that contains your configuration files to copy them to the Pi.
-
-2. Connect to the Pi via SSH, and re-run `pifiles.sh`.
