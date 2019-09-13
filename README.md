@@ -1,6 +1,6 @@
 # pifiles
 
-Configures Raspberry Pi 2 (ARMv7), 3 & 4 (ARMv8) running Raspbian Buster Lite
+Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 
 # Setup
 
