@@ -116,27 +116,17 @@ fi
 # Set up Homebridge
 npm i -g homebridge homebridge-ring homebridge-smartthings-tonesto7 homebridge-roomba-stv homebridge-harmony-tv-smockle
 
-sudo tee /etc/default/homebridge << EOF
-# The following settings tells homebridge where to find the config.json file
-# and where to persist the data
-HOMEBRIDGE_OPTS=-D -U /home/pi/.homebridge
-
-# If you uncomment the following line, homebridge will log more
-# DEBUG=*
-# You can display logs via systemd's journalctl: journalctl -fu homebridge
-EOF
-
-sudo tee /etc/systemd/system/homebridge.service << EOF
+sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
-Description=Homebridge
+Description=Homebridge %I
 Wants=network-online.target
 After=syslog.target network-online.target
 
 [Service]
 Type=simple
 User=pi
-EnvironmentFile=/etc/default/homebridge
-ExecStart=/home/pi/.npm-global/bin/homebridge \$HOMEBRIDGE_OPTS
+ExecStart=/home/pi/.npm-global/bin/homebridge -D -U /home/pi/.homebridge/%I
+SyslogIdentifier=homebridge-%I
 Restart=on-failure
 RestartSec=10
 KillMode=process
@@ -145,9 +135,20 @@ KillMode=process
 WantedBy=multi-user.target
 EOF
 
+mkdir -p ~/.homebridge/Ring
+mkdir -p ~/.homebridge/SmartThings
+mkdir -p ~/.homebridge/Roomba
+mkdir -p ~/.homebridge/HarmonyHub
+
 sudo systemctl daemon-reload
-sudo systemctl enable homebridge
-sudo systemctl start homebridge
+sudo systemctl enable homebridge@Ring
+sudo systemctl enable homebridge@SmartThings
+sudo systemctl enable homebridge@Roomba
+sudo systemctl enable homebridge@HarmonyHub
+sudo systemctl start homebridge@Ring
+sudo systemctl start homebridge@SmartThings
+sudo systemctl start homebridge@Roomba
+sudo systemctl start homebridge@HarmonyHub
 
 # Set up DDNS53
 pip3 install --upgrade awscli
