@@ -114,6 +114,14 @@ if ! which -a ffmpeg &>/dev/null; then
 fi
 
 # Set up Homebridge
+random_mac() {
+    # https://superuser.com/a/218650/257969
+    printf '02:%02X:%02X:%02X:%02X:%02X\n' $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256]
+}
+random_pin() {
+    printf '%03d-%02d-%03d\n' $[RANDOM%1000] $[RANDOM%100] $[RANDOM%1000]
+}
+
 npm i -g homebridge homebridge-ring homebridge-smartthings-tonesto7 homebridge-roomba-stv homebridge-harmony-tv-smockle
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
@@ -136,9 +144,168 @@ WantedBy=multi-user.target
 EOF
 
 mkdir -p ~/.homebridge/Ring
+if [ ! -f ~/.homebridge/Ring/config.json ]; then
+    echo "Run \"npx -p ring-client-api ring-auth-cli\" to obtain a refresh token."
+    read -p "Refresh token: " RING_REFRESH_TOKEN
+tee ~/.homebridge/Ring/config.json << EOF
+{
+  "bridge": {
+    "name": "Homebridge Ring",
+    "username": "$(random_mac)",
+    "port": 51826,
+    "pin": "$(random_pin)"
+  },
+  "description": "Homebridge Ring",
+  "accessories": [],
+  "platforms": [{
+    "platform": "Ring",
+    "refreshToken": "${RING_REFRESH_TOKEN}",
+    "hideCameraSirenSwitch": true,
+    "hideAlarmSirenSwitch": true,
+    "hideDoorbellSwitch": true
+  }]
+}
+EOF
+    unset RING_REFRESH_TOKEN
+fi
+
 mkdir -p ~/.homebridge/SmartThings
+if [ ! -f ~/.homebridge/SmartThings/config.json ]; then
+    read -p "App URL: " SMARTTHINGS_APP_URL
+    read -p "App ID: " SMARTTHINGS_APP_ID
+    read -p "Access token: " SMARTTHINGS_ACCESS_TOKEN
+tee ~/.homebridge/SmartThings/config.json << EOF
+{
+  "bridge": {
+    "name": "Homebridge SmartThings",
+    "username": "$(random_mac)",
+    "port": 51827,
+    "pin": "$(random_pin)"
+  },
+  "description": "Homebridge SmartThings",
+  "accessories": [],
+  "platforms": [{
+    "platform": "SmartThings",
+    "name": "SmartThings",
+    "app_url": "${SMARTTHINGS_APP_URL}",
+    "app_id": "${SMARTTHINGS_APP_ID}",
+    "access_token": "${SMARTTHINGS_ACCESS_TOKEN}",
+    "update_method": "direct"
+  }]
+}
+EOF
+    unset SMARTTHINGS_APP_URL
+    unset SMARTTHINGS_APP_ID
+    unset SMARTTHINGS_ACCESS_TOKEN
+fi
+
 mkdir -p ~/.homebridge/Roomba
+if [ ! -f ~/.homebridge/Roomba/config.json ]; then
+    read -p "Roomba IP address: " ROOMBA_IP_ADDRESS
+    echo "Run \"cd $(npm root -g)/homebridge-roomba-stv && npm run getrobotpwd ${ROOMBA_IP_ADDRESS}\" to obtain BLID and password."
+    read -p "Roomba BLID: " ROOMBA_BLID
+    read -p "Roomba Password: " ROOMBA_PASSWORD
+tee ~/.homebridge/Roomba/config.json << EOF
+{
+  "bridge": {
+    "name": "Homebridge Roomba",
+    "username": "$(random_mac)",
+    "port": 51828,
+    "pin": "$(random_pin)"
+  },
+  "description": "Homebridge Roomba",
+  "accessories": [{
+    "accessory": "Roomba",
+    "name": "Roomba",
+    "model": "960",
+    "blid": "${ROOMBA_BLID}",
+    "robotpwd": "${ROOMBA_PASSWORD}",
+    "ipaddress": "${ROOMBA_IP_ADDRESS}",
+    "refreshMode": "keepAlive",
+    "pollingInterval": 30,
+    "cacheTTL": 30
+  }],
+  "platforms": []
+}
+EOF
+    unset ROOMBA_IP_ADDRESS
+    unset ROOMBA_BLID
+    unset ROOMBA_PASSWORD
+fi
+
 mkdir -p ~/.homebridge/HarmonyHub
+if [ ! -f ~/.homebridge/HarmonyHub/config.json ]; then
+    read -p "Harmony IP address: " HARMONY_IP_ADDRESS
+    echo "Run \"cd $(npm root -g)/homebridge-harmony-tv-smockle/script/hubinfo.js ${HARMONY_IP_ADDRESS}\" to obtain device id."
+    read -p "Harmony device id: " HARMONY_DEVICE_ID
+    read -p "Harmony device name: " HARMONY_DEVICE_NAME
+tee ~/.homebridge/HarmonyHub/config.json << EOF
+{
+  "bridge": {
+    "name": "Homebridge HarmonyHub",
+    "username": "$(random_mac)",
+    "port": 51829,
+    "pin": "$(random_pin)"
+  },
+  "description": "Homebridge HarmonyHub",
+  "accessories": [{
+    "accessory": "HarmonyTV",
+    "name": "${HARMONY_DEVICE_NAME}",
+    "host": "${HARMONY_IP_ADDRESS}",
+    "deviceId": "${HARMONY_DEVICE_ID}",
+    "commands": [{
+      "action": "{\"command\":\"PowerToggle\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "PowerToggle",
+      "label": "Power Toggle"
+    }, {
+      "action": "{\"command\":\"VolumeDown\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "VolumeDown",
+      "label": "Volume Down"
+    }, {
+      "action": "{\"command\":\"VolumeUp\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "VolumeUp",
+      "label": "Volume Up"
+    }, {
+      "action": "{\"command\":\"DirectionDown\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "DirectionDown",
+      "label": "Direction Down"
+    }, {
+      "action": "{\"command\":\"DirectionLeft\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "DirectionLeft",
+      "label": "Direction Left"
+    }, {
+      "action": "{\"command\":\"DirectionRight\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "DirectionRight",
+      "label": "Direction Right"
+    }, {
+      "action": "{\"command\":\"DirectionUp\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "DirectionUp",
+      "label": "Direction Up"
+    }, {
+      "action": "{\"command\":\"Select\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "Select",
+      "label": "Select"
+    }, {
+      "action": "{\"command\":\"Menu\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "Menu",
+      "label": "Menu"
+    }, {
+      "action": "{\"command\":\"InputHdmi1\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "InputHdmi1",
+      "label": "InputHdmi1"
+    }, {
+      "action": "{\"command\":\"InputHdmi2\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
+      "name": "InputHdmi2",
+      "label": "InputHdmi2"
+    }]
+  }],
+  "platforms": []
+}
+EOF
+    unset HARMONY_IP_ADDRESS
+    unset HARMONY_DEVICE_ID
+    unset HARMONY_DEVICE_NAME
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Ring
@@ -150,16 +317,27 @@ sudo systemctl start homebridge@SmartThings
 sudo systemctl start homebridge@Roomba
 sudo systemctl start homebridge@HarmonyHub
 
+unset random_mac
+unset random_pin
+
 # Set up DDNS53
 pip3 install --upgrade awscli
 
 if [ ! -f /home/pi/.ddns53/env ]; then
+    read -p "Hosted Zone ID: " DDNS53_HOSTED_ZONE_ID
+    read -p "Domain: " DDNS53_DOMAIN
+    read -p "AWS Access Key ID: " AWS_ACCESS_KEY_ID
+    read -p "AWS Secret Access Key: " AWS_SECRET_ACCESS_KEY
 tee /home/pi/.ddns53/env << EOF
-HOSTED_ZONE_ID=
-DOMAIN=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
+HOSTED_ZONE_ID=${DDNS53_HOSTED_ZONE_ID}
+DOMAIN=${DDNS53_DOMAIN}
+AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 EOF
+    unset DDNS53_HOSTED_ZONE_ID
+    unset DDNS53_DOMAIN
+    unset AWS_ACCESS_KEY_ID
+    unset AWS_SECRET_ACCESS_KEY
 fi
 
 sudo tee /etc/systemd/system/ddns53.service << EOF
