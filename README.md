@@ -8,7 +8,7 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 
 2. Follow the [“Installing operating system images on Mac OS”](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md) instructions to flash the downloaded Raspbian image to a Micro SD card (at least 8 GB)
 
-3. Remove and reinsert the Micro SD card to mount the `boot` volumes
+3. Remove and reinsert the Micro SD card to mount the `boot` volume
 
 4. Enable SSH: `touch /Volumes/boot/ssh`
 
