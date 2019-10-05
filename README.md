@@ -33,7 +33,7 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 
 10. Append the contents of the host’s public key to `~/.ssh/authorized_keys`, then prevent further writes: `chmod 444 ~/.ssh/authorized_keys`. Now, you’ll be able to connect to your Raspberry Pi using just `ssh pi`.
 
-11. Check existing `PARTUUID`s with `sudo blkid`. If the USB flash drive so that it is unique from the Micro SD card’s `PARTUUID`:
+11. Check existing `PARTUUID`s with `sudo blkid`. If necessary, update the USB flash drive’s `PARTUUID` so that it is unique from the Micro SD card’s `PARTUUID`:
 
     ```Shell
     sudo fdisk /dev/sda
