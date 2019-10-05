@@ -23,6 +23,7 @@ sudo apt-get install -y zsh vim \
     unattended-upgrades apt-listchanges \
     unifi openjdk-8-jre-headless haveged \
     nodejs libavahi-compat-libdnssd-dev \
+    python3-venv libffi-dev libssl-dev \
     python3 python3-pip dnsutils \
     git pkg-config autoconf automake libtool libx264-dev
 
