@@ -338,6 +338,7 @@ if systemctl is-active --quiet homeassistant.service; then
 else
   python3 -m pip install homeassistant
 fi
+deactivate
 cd ~
 
 sudo tee /etc/systemd/system/homeassistant.service << EOF
