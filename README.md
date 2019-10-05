@@ -33,7 +33,7 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 
 10. Append the contents of the host’s public key to `~/.ssh/authorized_keys`, then prevent further writes: `chmod 444 ~/.ssh/authorized_keys`. Now, you’ll be able to connect to your Raspberry Pi using just `ssh pi`.
 
-11. Check existing `PARTUUID`s with `sudo blkid`. If necessary, update the USB flash drive’s `PARTUUID` so that it is unique from the Micro SD card’s `PARTUUID`:
+11. Check existing `PARTUUID`s with `sudo blkid`. If necessary, update the USB flash drive’s `PARTUUID` so that it is unique from the Micro SD card’s `PARTUUID` (kudos [this comment](https://www.raspberrypi.org/forums/viewtopic.php?t=191775#p1203247)):
 
     ```Shell
     sudo fdisk /dev/sda
@@ -46,7 +46,7 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
     
 12. Reboot the Raspberry Pi : `sudo reboot`. Wait a few minutes, then reconnect: `ssh raspberrypi`.
 
-13. Expand the primary root partition on the USB flash drive:
+13. Expand the primary root partition on the USB flash drive (kudos [“Install and run Raspbian from a USB Flash Drive”](https://www.stewright.me/2013/05/install-and-run-raspbian-from-a-usb-flash-drive/)):
 
     ```Shell
     sudo fdisk /dev/sda
@@ -63,7 +63,7 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspbian Buster Lite
 
 14. Reboot the Raspberry Pi : `sudo reboot`. Wait a few minutes, then reconnect: `ssh raspberrypi`.
 
-15. Replace the `PARTUUID` on the Micro USB card’s `/boot/cmdline.txt` with the new `PARTUUID` assigned to the USB flash drive in step 11: `vi /boot/cmdline.txt`.
+15. Replace the `PARTUUID` on the Micro USB card’s `/boot/cmdline.txt` with the new `PARTUUID` assigned to the USB flash drive in step 11: `vi /boot/cmdline.txt` (kudos [this comment](https://www.raspberrypi.org/forums/viewtopic.php?t=193157#p1210713))
 
 16. Reboot the Raspberry Pi : `sudo reboot`. Wait a few minutes, then reconnect: `ssh raspberrypi`.
 
