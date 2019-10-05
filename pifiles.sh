@@ -320,6 +320,47 @@ sudo systemctl start homebridge@HarmonyHub
 unset random_mac
 unset random_pin
 
+# Set up Home Assistant
+mkdir -p ~/.venv
+cd ~/.venv
+if [ -d homeassistant ]; then
+  python3 -m venv --upgrade homeassistant
+else
+  python3 -m venv homeassistant
+fi
+cd homeassistant
+source bin/activate
+if systemctl is-active --quiet homeassistant.service; then
+  sudo systemctl stop homeassistant
+  python3 -m pip install --upgrade homeassistant
+  sudo systemctl start homeassistant
+else
+  python3 -m pip install homeassistant
+fi
+cd ~
+
+sudo tee /etc/systemd/system/homeassistant.service << EOF
+[Unit]
+Description=Home Assistant
+Wants=network-online.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/home/pi/.venv/homeassistant/bin/hass -c "/home/pi/.homeassistant"
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable homeassistant
+sudo systemctl start homeassistant
+
 # Set up DDNS53
 pip3 install --upgrade awscli
 
