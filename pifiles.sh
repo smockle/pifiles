@@ -344,6 +344,54 @@ KillMode=process
 WantedBy=multi-user.target
 EOF
 
+mkdir -p ~/.homeassistant
+tee ~/.homeassistant/configuration.yaml << EOF
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+homekit:
+  auto_start: false
+  port: 51830
+  filter:
+    exclude_domains:
+      - automation
+      - person
+      - group
+    exclude_entities:
+      - binary_sensor.updater
+      - binary_sensor.remote_ui
+
+cloud:
+  alexa:
+    filter:
+      exclude_domains:
+        - automation
+        - person
+        - group
+      exclude_entities:
+        - binary_sensor.updater
+        - binary_sensor.remote_ui
+        - climate.foyer_thermostat
+        - climate.landing_thermostat
+
+# https://community.home-assistant.io/t/ge-dimmer-switch-14294-showing-as-1-brightness-when-toggled-off-on/84118/3
+zwave:
+  usb_path: /dev/ttyUSB0
+  network_key: !secret network_key
+  device_config_domain:
+    light:
+      refresh_value: true
+      delay: 1
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+EOF
+
 sudo systemctl daemon-reload
 sudo systemctl enable homeassistant
 sudo systemctl start homeassistant
