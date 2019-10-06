@@ -140,7 +140,7 @@ random_pin() {
     printf '%03d-%02d-%03d\n' $[RANDOM%1000] $[RANDOM%100] $[RANDOM%1000]
 }
 
-npm i -g homebridge homebridge-ring homebridge-smartthings-tonesto7 homebridge-roomba-stv homebridge-harmony-tv-smockle
+npm i -g homebridge homebridge-ring homebridge-roomba-stv homebridge-harmony-tv-smockle
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
@@ -185,36 +185,6 @@ tee ~/.homebridge/Ring/config.json << EOF
 }
 EOF
     unset RING_REFRESH_TOKEN
-fi
-
-mkdir -p ~/.homebridge/SmartThings
-if [ ! -f ~/.homebridge/SmartThings/config.json ]; then
-    read -p "App URL: " SMARTTHINGS_APP_URL
-    read -p "App ID: " SMARTTHINGS_APP_ID
-    read -p "Access token: " SMARTTHINGS_ACCESS_TOKEN
-tee ~/.homebridge/SmartThings/config.json << EOF
-{
-  "bridge": {
-    "name": "Homebridge SmartThings",
-    "username": "$(random_mac)",
-    "port": 51827,
-    "pin": "$(random_pin)"
-  },
-  "description": "Homebridge SmartThings",
-  "accessories": [],
-  "platforms": [{
-    "platform": "SmartThings",
-    "name": "SmartThings",
-    "app_url": "${SMARTTHINGS_APP_URL}",
-    "app_id": "${SMARTTHINGS_APP_ID}",
-    "access_token": "${SMARTTHINGS_ACCESS_TOKEN}",
-    "update_method": "direct"
-  }]
-}
-EOF
-    unset SMARTTHINGS_APP_URL
-    unset SMARTTHINGS_APP_ID
-    unset SMARTTHINGS_ACCESS_TOKEN
 fi
 
 mkdir -p ~/.homebridge/Roomba
@@ -327,11 +297,9 @@ fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Ring
-sudo systemctl enable homebridge@SmartThings
 sudo systemctl enable homebridge@Roomba
 sudo systemctl enable homebridge@HarmonyHub
 sudo systemctl start homebridge@Ring
-sudo systemctl start homebridge@SmartThings
 sudo systemctl start homebridge@Roomba
 sudo systemctl start homebridge@HarmonyHub
 
