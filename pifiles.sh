@@ -46,6 +46,23 @@ if [[ "${SHELL}" == */zsh ]]; then
     source /etc/zsh/zshenv
 fi
 
+# Add pip3 install location to path
+if ! grep -qF -- "/home/pi/.local/bin" /etc/zsh/zshenv; then
+    echo 'export PATH="/home/pi/.local/bin:$PATH"' | sudo tee -a /etc/zsh/zshenv
+fi
+sudo tee /etc/profile.d/pip3.sh << EOF
+if [ -d "/home/pi/.local" ] ; then
+    PATH="/home/pi/.local/bin:$PATH"
+fi
+EOF
+sudo chmod +x /etc/profile.d/pip3.sh
+if [[ "${SHELL}" == */bash ]]; then
+    source /etc/profile
+fi
+if [[ "${SHELL}" == */zsh ]]; then
+    source /etc/zsh/zshenv
+fi
+
 # Update NPM
 npm i -g npm@latest
 
@@ -237,7 +254,7 @@ fi
 mkdir -p ~/.homebridge/HarmonyHub
 if [ ! -f ~/.homebridge/HarmonyHub/config.json ]; then
     read -p "Harmony IP address: " HARMONY_IP_ADDRESS
-    echo "Run \"cd $(npm root -g)/homebridge-harmony-tv-smockle/script/hubinfo.js ${HARMONY_IP_ADDRESS}\" to obtain device id."
+    echo "Run \"$(npm root -g)/homebridge-harmony-tv-smockle/script/hubinfo.js ${HARMONY_IP_ADDRESS}\" to obtain device id."
     read -p "Harmony device id: " HARMONY_DEVICE_ID
     read -p "Harmony device name: " HARMONY_DEVICE_NAME
 tee ~/.homebridge/HarmonyHub/config.json << EOF
@@ -365,6 +382,8 @@ sudo systemctl start homeassistant
 
 # Set up DDNS53
 pip3 install --upgrade awscli
+
+mkdir -p ~/.ddns53
 
 if [ ! -f /home/pi/.ddns53/env ]; then
     read -p "Hosted Zone ID: " DDNS53_HOSTED_ZONE_ID
