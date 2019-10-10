@@ -140,7 +140,7 @@ random_pin() {
     printf '%03d-%02d-%03d\n' $[RANDOM%1000] $[RANDOM%100] $[RANDOM%1000]
 }
 
-npm i -g homebridge homebridge-ring homebridge-roomba-stv homebridge-harmony-tv-smockle
+npm i -g homebridge homebridge-ring homebridge-roomba-stv
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
@@ -221,87 +221,11 @@ EOF
     unset ROOMBA_PASSWORD
 fi
 
-mkdir -p ~/.homebridge/HarmonyHub
-if [ ! -f ~/.homebridge/HarmonyHub/config.json ]; then
-    read -p "Harmony IP address: " HARMONY_IP_ADDRESS
-    echo "Run \"$(npm root -g)/homebridge-harmony-tv-smockle/script/hubinfo.js ${HARMONY_IP_ADDRESS}\" to obtain device id."
-    read -p "Harmony device id: " HARMONY_DEVICE_ID
-    read -p "Harmony device name: " HARMONY_DEVICE_NAME
-tee ~/.homebridge/HarmonyHub/config.json << EOF
-{
-  "bridge": {
-    "name": "Homebridge HarmonyHub",
-    "username": "$(random_mac)",
-    "port": 51829,
-    "pin": "$(random_pin)"
-  },
-  "description": "Homebridge HarmonyHub",
-  "accessories": [{
-    "accessory": "HarmonyTV",
-    "name": "${HARMONY_DEVICE_NAME}",
-    "host": "${HARMONY_IP_ADDRESS}",
-    "deviceId": "${HARMONY_DEVICE_ID}",
-    "commands": [{
-      "action": "{\"command\":\"PowerToggle\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "PowerToggle",
-      "label": "Power Toggle"
-    }, {
-      "action": "{\"command\":\"VolumeDown\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "VolumeDown",
-      "label": "Volume Down"
-    }, {
-      "action": "{\"command\":\"VolumeUp\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "VolumeUp",
-      "label": "Volume Up"
-    }, {
-      "action": "{\"command\":\"DirectionDown\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "DirectionDown",
-      "label": "Direction Down"
-    }, {
-      "action": "{\"command\":\"DirectionLeft\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "DirectionLeft",
-      "label": "Direction Left"
-    }, {
-      "action": "{\"command\":\"DirectionRight\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "DirectionRight",
-      "label": "Direction Right"
-    }, {
-      "action": "{\"command\":\"DirectionUp\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "DirectionUp",
-      "label": "Direction Up"
-    }, {
-      "action": "{\"command\":\"Select\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "Select",
-      "label": "Select"
-    }, {
-      "action": "{\"command\":\"Menu\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "Menu",
-      "label": "Menu"
-    }, {
-      "action": "{\"command\":\"InputHdmi1\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "InputHdmi1",
-      "label": "InputHdmi1"
-    }, {
-      "action": "{\"command\":\"InputHdmi2\",\"type\":\"IRCommand\",\"deviceId\":\"${HARMONY_DEVICE_ID}\"}",
-      "name": "InputHdmi2",
-      "label": "InputHdmi2"
-    }]
-  }],
-  "platforms": []
-}
-EOF
-    unset HARMONY_IP_ADDRESS
-    unset HARMONY_DEVICE_ID
-    unset HARMONY_DEVICE_NAME
-fi
-
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Ring
 sudo systemctl enable homebridge@Roomba
-sudo systemctl enable homebridge@HarmonyHub
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Roomba
-sudo systemctl start homebridge@HarmonyHub
 
 unset random_mac
 unset random_pin
@@ -357,6 +281,7 @@ homekit:
       - automation
       - person
       - group
+      - remote
     exclude_entities:
       - binary_sensor.updater
       - binary_sensor.remote_ui
@@ -368,6 +293,7 @@ cloud:
         - automation
         - person
         - group
+        - remote
       exclude_entities:
         - binary_sensor.updater
         - binary_sensor.remote_ui
@@ -383,6 +309,51 @@ zwave:
       refresh_value: true
       delay: 1
 
+remote:
+  - platform: harmony
+    name: Harmony Hub
+    host: !secret harmony_ip_address
+
+media_player:
+  - platform: universal
+    name: Master Bedroom TV
+    commands:
+      turn_on:
+        service: remote.send_command
+        data:
+          entity_id: remote.harmony_hub
+          command:
+            - PowerToggle
+          device: !secret harmony_device_id
+      turn_off:
+        service: remote.send_command
+        data:
+          entity_id: remote.harmony_hub
+          command:
+            - PowerToggle
+          device: !secret harmony_device_id
+      volume_up:
+        service: remote.send_command
+        data:
+          entity_id: remote.harmony_hub
+          command:
+            - VolumeUp
+          device: !secret harmony_device_id
+      volume_down:
+        service: remote.send_command
+        data:
+          entity_id: remote.harmony_hub
+          command:
+            - VolumeDown
+          device: !secret harmony_device_id
+      volume_mute:
+        service: remote.send_command
+        data:
+          entity_id: remote.harmony_hub
+          command:
+            - Mute
+          device: !secret harmony_device_id
+
 # Text to speech
 tts:
   - platform: google_translate
@@ -390,7 +361,40 @@ tts:
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
+homeassistant:
+  customize: !include customize.yaml
 EOF
+
+random_network_key() {
+    printf '0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X\n' $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] 
+}
+
+if [ ! -f ~/.homeassistant/secrets.yaml ]; then
+  touch ~/.homeassistant/secrets.yaml
+fi
+if ! grep -qF -- "network_key" ~/.homeassistant/secrets.yaml; then
+  echo "network_key: \"$(random_network_key)\"" >> ~/.homeassistant/secrets.yaml
+fi
+if ! grep -qF -- "harmony_ip_address" ~/.homeassistant/secrets.yaml; then
+  read -p "Harmony IP address: " HARMONY_IP_ADDRESS
+  echo "harmony_ip_address: \"${HARMONY_IP_ADDRESS}\"" >> ~/.homeassistant/secrets.yaml
+  unset HARMONY_IP_ADDRESS
+fi
+if ! grep -qF -- "harmony_device_id" ~/.homeassistant/secrets.yaml; then
+  read -p "Harmony device id: " HARMONY_DEVICE_ID
+  echo "harmony_device_id: \"${HARMONY_DEVICE_ID}\"" >> ~/.homeassistant/secrets.yaml
+  unset HARMONY_DEVICE_ID
+fi
+
+if [ ! -f ~/.homeassistant/customize.yaml ]; then
+  touch ~/.homeassistant/customize.yaml
+fi
+if ! grep -qF -- "media_player.master_bedroom_tv" ~/.homeassistant/customize.yaml; then
+tee -a ~/.homeassistant/customize.yaml << EOF
+media_player.master_bedroom_tv:
+  device_class: tv
+EOF
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable homeassistant
