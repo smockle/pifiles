@@ -287,6 +287,12 @@ homekit:
     exclude_entities:
       - binary_sensor.updater
       - binary_sensor.remote_ui
+      - sensor.aeon_labs_zw096_smart_switch_6_current
+      - sensor.aeon_labs_zw096_smart_switch_6_energy
+      - sensor.aeon_labs_zw096_smart_switch_6_power
+      - sensor.aeon_labs_zw096_smart_switch_6_previous_reading
+      - sensor.aeon_labs_zw096_smart_switch_6_voltage
+      - switch.aeon_labs_zw096_smart_switch_6_switch
 
 cloud:
   alexa:
@@ -303,6 +309,12 @@ cloud:
         - binary_sensor.remote_ui
         - climate.foyer_thermostat
         - climate.landing_thermostat
+        - sensor.aeon_labs_zw096_smart_switch_6_current
+        - sensor.aeon_labs_zw096_smart_switch_6_energy
+        - sensor.aeon_labs_zw096_smart_switch_6_power
+        - sensor.aeon_labs_zw096_smart_switch_6_previous_reading
+        - sensor.aeon_labs_zw096_smart_switch_6_voltage
+        - switch.aeon_labs_zw096_smart_switch_6_switch
 
 zha:
   usb_path: /dev/ttyUSB1
@@ -434,6 +446,57 @@ master_bedroom_tv_off:
     - service: input_boolean.turn_off
       data:
         entity_id: input_boolean.master_bedroom_tv
+EOF
+fi
+
+if [ ! -f ~/.homeassistant/automations.yaml ]; then
+  touch ~/.homeassistant/automations.yaml
+fi
+if ! grep -qF -- "Start HomeKit" ~/.homeassistant/automations.yaml; then
+tee -a ~/.homeassistant/automations.yaml << EOF
+- id: '1570326016433'
+  alias: Start HomeKit
+  trigger:
+  - event_data: {}
+    event_type: zwave.network_ready
+    platform: event
+  - event_data: {}
+    event_type: zwave.network_complete
+    platform: event
+  - event_data: {}
+    event_type: zwave.network_complete_some_dead
+    platform: event
+  condition: []
+  action:
+  - service: homekit.start
+- id: '1570767075722'
+  alias: Master Bedroom TV Input Boolean On
+  trigger:
+  - above: '0.05'
+    entity_id: sensor.aeon_labs_zw096_smart_switch_6_current
+    platform: numeric_state
+  condition:
+  - condition: state
+    entity_id: input_boolean.master_bedroom_tv
+    state: 'off'
+  action:
+  - data:
+      entity_id: input_boolean.master_bedroom_tv
+    service: input_boolean.turn_on
+- id: '1570767173000'
+  alias: Master Bedroom TV Input Boolean Off
+  trigger:
+  - below: '0.05'
+    entity_id: sensor.aeon_labs_zw096_smart_switch_6_current
+    platform: numeric_state
+  condition:
+  - condition: state
+    entity_id: input_boolean.master_bedroom_tv
+    state: 'on'
+  action:
+  - data:
+      entity_id: input_boolean.master_bedroom_tv
+    service: input_boolean.turn_off
 EOF
 fi
 
