@@ -282,6 +282,8 @@ homekit:
       - person
       - group
       - remote
+      - input_boolean
+      - script
     exclude_entities:
       - binary_sensor.updater
       - binary_sensor.remote_ui
@@ -294,11 +296,17 @@ cloud:
         - person
         - group
         - remote
+        - input_boolean
+        - script
       exclude_entities:
         - binary_sensor.updater
         - binary_sensor.remote_ui
         - climate.foyer_thermostat
         - climate.landing_thermostat
+
+zha:
+  usb_path: /dev/ttyUSB1
+  database_path: /home/pi/.homeassistant/zigbee.db
 
 # https://community.home-assistant.io/t/ge-dimmer-switch-14294-showing-as-1-brightness-when-toggled-off-on/84118/3
 zwave:
@@ -307,31 +315,26 @@ zwave:
   device_config_domain:
     light:
       refresh_value: true
-      delay: 1
+      delay: 1.5
 
 remote:
   - platform: harmony
     name: Harmony Hub
     host: !secret harmony_ip_address
 
+input_boolean:
+  master_bedroom_tv:
+    name: Master Bedroom TV
+    initial: off
+
 media_player:
   - platform: universal
     name: Master Bedroom TV
     commands:
       turn_on:
-        service: remote.send_command
-        data:
-          entity_id: remote.harmony_hub
-          command:
-            - PowerToggle
-          device: !secret harmony_device_id
+        service: script.master_bedroom_tv_on
       turn_off:
-        service: remote.send_command
-        data:
-          entity_id: remote.harmony_hub
-          command:
-            - PowerToggle
-          device: !secret harmony_device_id
+        service: script.master_bedroom_tv_off
       volume_up:
         service: remote.send_command
         data:
@@ -353,6 +356,8 @@ media_player:
           command:
             - Mute
           device: !secret harmony_device_id
+    attributes:
+      state: input_boolean.master_bedroom_tv
 
 # Text to speech
 tts:
@@ -393,6 +398,42 @@ if ! grep -qF -- "media_player.master_bedroom_tv" ~/.homeassistant/customize.yam
 tee -a ~/.homeassistant/customize.yaml << EOF
 media_player.master_bedroom_tv:
   device_class: tv
+EOF
+fi
+
+if [ ! -f ~/.homeassistant/scripts.yaml ]; then
+  touch ~/.homeassistant/scripts.yaml
+fi
+if ! grep -qF -- "master_bedroom_tv_on" ~/.homeassistant/scripts.yaml; then
+tee -a ~/.homeassistant/scripts.yaml << EOF
+master_bedroom_tv_on:
+  sequence:
+    - condition: state
+      entity_id: input_boolean.master_bedroom_tv
+      state: 'off'
+    - service: remote.send_command
+      data:
+        entity_id: remote.harmony_hub
+        command:
+          - PowerToggle
+        device: !secret harmony_device_id
+    - service: input_boolean.turn_on
+      data:
+        entity_id: input_boolean.master_bedroom_tv
+master_bedroom_tv_off:
+  sequence:
+    - condition: state
+      entity_id: input_boolean.master_bedroom_tv
+      state: 'on'
+    - service: remote.send_command
+      data:
+        entity_id: remote.harmony_hub
+        command:
+          - PowerToggle
+        device: !secret harmony_device_id
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.master_bedroom_tv
 EOF
 fi
 
