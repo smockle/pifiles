@@ -140,7 +140,7 @@ random_pin() {
     printf '%03d-%02d-%03d\n' $[RANDOM%1000] $[RANDOM%100] $[RANDOM%1000]
 }
 
-npm i -g homebridge homebridge-ring homebridge-roomba-stv
+npm i -g homebridge homebridge-ring homebridge-roomba-stv homebridge-mi-airpurifier
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
@@ -221,11 +221,56 @@ EOF
     unset ROOMBA_PASSWORD
 fi
 
+mkdir -p ~/.homebridge/Xiaomi
+if [ ! -f ~/.homebridge/Xiaomi/config.json ]; then
+    read -p "Xiaomi Air Purifier IP address: " XIAOMI_IP_ADDRESS
+    echo "Run \"npx miio --discover\" to obtain token."
+    read -p "Xiaomi Air Purifier Token: " XIAOMI_TOKEN
+tee ~/.homebridge/Xiaomi/config.json << EOF
+{
+  "bridge": {
+    "name": "Homebridge Xiaomi",
+    "username": "$(random_mac)",
+    "port": 51827,
+    "pin": "$(random_pin)"
+  },
+  "description": "Homebridge Xiaomi",
+  "accessories": [],
+  "platforms": [{
+    "platform": "MiAirPurifierPlatform",
+    "deviceCfgs": [{
+        "type": "MiAirPurifier2S",
+        "ip": "${XIAOMI_IP_ADDRESS}",
+        "token": "${XIAOMI_TOKEN}",
+        "airPurifierDisable": false,
+        "airPurifierName": "Air Purifier",
+        "silentModeSwitchDisable": true,
+        "silentModeSwitchName": "Air Purifier Silent Mode Switch",
+        "temperatureDisable": false,
+        "temperatureName": "Air Purifier Temperature",
+        "humidityDisable": false,
+        "humidityName": "Air Purifier Humidity",
+        "buzzerSwitchDisable": true,
+        "buzzerSwitchName": "Air Purifier Buzzer Switch",
+        "ledBulbDisable": true,
+        "ledBulbName": "Air Purifier LED Switch",
+        "airQualityDisable": false,
+        "airQualityName": "Air Purifier AirQuality"
+    }]
+  }]
+}
+EOF
+    unset XIAOMI_IP_ADDRESS
+    unset XIAOMI_TOKEN
+fi
+
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Ring
 sudo systemctl enable homebridge@Roomba
+sudo systemctl enable homebridge@Xiaomi
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Roomba
+sudo systemctl start homebridge@Xiaomi
 
 unset random_mac
 unset random_pin
