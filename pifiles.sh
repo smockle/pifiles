@@ -224,7 +224,7 @@ fi
 mkdir -p ~/.homebridge/Xiaomi
 if [ ! -f ~/.homebridge/Xiaomi/config.json ]; then
     read -p "Xiaomi Air Purifier IP address: " XIAOMI_IP_ADDRESS
-    echo "Run \"npx miio --discover\" to obtain token."
+    echo "Run \"npx miio discover\" to obtain token."
     read -p "Xiaomi Air Purifier Token: " XIAOMI_TOKEN
 tee ~/.homebridge/Xiaomi/config.json << EOF
 {
