@@ -599,3 +599,33 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable ddns53.timer
 sudo systemctl start ddns53.timer
+
+# Add Unifi configuration
+if ! grep -qF -- "igmp-proxy" /usr/lib/unifi/data/sites/default/config.gateway.json; then
+  read -p "IoT VLAN: " IOT_VLAN
+sudo tee /usr/lib/unifi/data/sites/default/config.gateway.json << EOF
+{
+  "protocols": {
+    "igmp-proxy": {
+      "interface": {
+        "eth1": {
+          "alt-subnet": [
+            "0.0.0.0/0"
+          ],
+          "role": "upstream",
+          "threshold": "1"
+        },
+        "eth1.${IOT_VLAN}": {
+          "alt-subnet": [
+            "0.0.0.0/0"
+          ],
+          "role": "downstream",
+          "threshold": "1"
+        }
+      }
+    }
+  }
+}
+EOF
+  unset IOT_VLAN
+fi
