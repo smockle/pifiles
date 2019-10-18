@@ -140,7 +140,7 @@ random_pin() {
     printf '%03d-%02d-%03d\n' $[RANDOM%1000] $[RANDOM%100] $[RANDOM%1000]
 }
 
-npm i -g homebridge homebridge-ring homebridge-roomba-stv homebridge-mi-airpurifier
+npm i -g homebridge homebridge-ring homebridge-mi-airpurifier
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
@@ -187,40 +187,6 @@ EOF
     unset RING_REFRESH_TOKEN
 fi
 
-mkdir -p ~/.homebridge/Roomba
-if [ ! -f ~/.homebridge/Roomba/config.json ]; then
-    read -p "Roomba IP address: " ROOMBA_IP_ADDRESS
-    echo "Run \"cd $(npm root -g)/homebridge-roomba-stv && npm run getrobotpwd ${ROOMBA_IP_ADDRESS}\" to obtain BLID and password."
-    read -p "Roomba BLID: " ROOMBA_BLID
-    read -p "Roomba Password: " ROOMBA_PASSWORD
-tee ~/.homebridge/Roomba/config.json << EOF
-{
-  "bridge": {
-    "name": "Homebridge Roomba",
-    "username": "$(random_mac)",
-    "port": 51828,
-    "pin": "$(random_pin)"
-  },
-  "description": "Homebridge Roomba",
-  "accessories": [{
-    "accessory": "Roomba",
-    "name": "Roomba",
-    "model": "960",
-    "blid": "${ROOMBA_BLID}",
-    "robotpwd": "${ROOMBA_PASSWORD}",
-    "ipaddress": "${ROOMBA_IP_ADDRESS}",
-    "refreshMode": "keepAlive",
-    "pollingInterval": 30,
-    "cacheTTL": 30
-  }],
-  "platforms": []
-}
-EOF
-    unset ROOMBA_IP_ADDRESS
-    unset ROOMBA_BLID
-    unset ROOMBA_PASSWORD
-fi
-
 mkdir -p ~/.homebridge/Xiaomi
 if [ ! -f ~/.homebridge/Xiaomi/config.json ]; then
     read -p "Xiaomi Air Purifier IP address: " XIAOMI_IP_ADDRESS
@@ -243,19 +209,19 @@ tee ~/.homebridge/Xiaomi/config.json << EOF
         "ip": "${XIAOMI_IP_ADDRESS}",
         "token": "${XIAOMI_TOKEN}",
         "airPurifierDisable": false,
-        "airPurifierName": "Air Purifier",
+        "airPurifierName": "Living Room Air Purifier",
         "silentModeSwitchDisable": true,
         "silentModeSwitchName": "Air Purifier Silent Mode Switch",
         "temperatureDisable": false,
-        "temperatureName": "Air Purifier Temperature",
+        "temperatureName": "Living Room Temperature",
         "humidityDisable": false,
-        "humidityName": "Air Purifier Humidity",
+        "humidityName": "Living Room Humidity",
         "buzzerSwitchDisable": true,
         "buzzerSwitchName": "Air Purifier Buzzer Switch",
         "ledBulbDisable": true,
         "ledBulbName": "Air Purifier LED Switch",
         "airQualityDisable": false,
-        "airQualityName": "Air Purifier AirQuality"
+        "airQualityName": "Living Room Air Quality"
     }]
   }]
 }
@@ -338,6 +304,9 @@ homekit:
       - sensor.aeon_labs_zw096_smart_switch_6_previous_reading
       - sensor.aeon_labs_zw096_smart_switch_6_voltage
       - switch.aeon_labs_zw096_smart_switch_6_switch
+  entity_config:
+    switch.roomba:
+      linked_battery_sensor: sensor.roomba_battery
 
 cloud:
   alexa:
@@ -349,6 +318,7 @@ cloud:
         - remote
         - input_boolean
         - script
+        - vacuum
       exclude_entities:
         - binary_sensor.updater
         - binary_sensor.remote_ui
@@ -360,6 +330,8 @@ cloud:
         - sensor.aeon_labs_zw096_smart_switch_6_previous_reading
         - sensor.aeon_labs_zw096_smart_switch_6_voltage
         - switch.aeon_labs_zw096_smart_switch_6_switch
+        - sensor.roomba_battery
+        - switch.roomba
 
 zha:
   usb_path: /dev/ttyUSB1
@@ -373,6 +345,41 @@ zwave:
     light:
       refresh_value: true
       delay: 1.5
+
+vacuum:
+  - platform: roomba
+    host: !secret roomba_ip_address
+    username: !secret roomba_username
+    password: !secret roomba_password
+
+sensor:
+  - platform: template
+    sensors:
+      roomba_battery:
+        friendly_name: "Laundry Room Roomba Battery"
+        unit_of_measurement: "%"
+        value_template: >-
+          {%- if states.vacuum.roomba.attributes.battery_level %}
+            {{ states.vacuum.roomba.attributes.battery_level|round }}
+          {% else %}
+            {{ states.vacuum.roomba.attributes.battery_level }}
+          {%- endif %}
+        icon_template: mdi:battery
+
+switch:
+  - platform: template
+    switches:
+      roomba:
+        friendly_name: "Laundry Room Roomba"
+        value_template: '{{ is_state("vacuum.roomba", "on") }}'
+        turn_on:
+          service: vacuum.turn_on
+          data:
+            entity_id: vacuum.roomba
+        turn_off:
+          service: vacuum.return_to_base
+          data:
+            entity_id: vacuum.roomba
 
 remote:
   - platform: harmony
@@ -446,6 +453,20 @@ if ! grep -qF -- "harmony_device_id" ~/.homeassistant/secrets.yaml; then
   read -p "Harmony device id: " HARMONY_DEVICE_ID
   echo "harmony_device_id: \"${HARMONY_DEVICE_ID}\"" >> ~/.homeassistant/secrets.yaml
   unset HARMONY_DEVICE_ID
+fi
+if ! grep -qF -- "roomba_ip_address" ~/.homeassistant/secrets.yaml; then
+  read -p "Roomba IP address: " ROOMBA_IP_ADDRESS
+  echo "Run \"cd $(npm root -g)/homebridge-roomba-stv && npm run getrobotpwd ${ROOMBA_IP_ADDRESS}\" to obtain BLID and password."
+  read -p "Roomba BLID: " ROOMBA_BLID
+  read -p "Roomba Password: " ROOMBA_PASSWORD
+tee -a ~/.homeassistant/secrets.yaml << EOF
+roomba_ip_address: "${ROOMBA_IP_ADDRESS}"
+roomba_username: "${ROOMBA_BLID}"
+roomba_password: "${ROOMBA_PASSWORD}"
+EOF
+  unset ROOMBA_IP_ADDRESS
+  unset ROOMBA_BLID
+  unset ROOMBA_PASSWORD
 fi
 
 if [ ! -f ~/.homeassistant/customize.yaml ]; then
