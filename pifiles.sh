@@ -456,7 +456,6 @@ if ! grep -qF -- "harmony_device_id" ~/.homeassistant/secrets.yaml; then
 fi
 if ! grep -qF -- "roomba_ip_address" ~/.homeassistant/secrets.yaml; then
   read -p "Roomba IP address: " ROOMBA_IP_ADDRESS
-  echo "Run \"cd $(npm root -g)/homebridge-roomba-stv && npm run getrobotpwd ${ROOMBA_IP_ADDRESS}\" to obtain BLID and password."
   read -p "Roomba BLID: " ROOMBA_BLID
   read -p "Roomba Password: " ROOMBA_PASSWORD
 tee -a ~/.homeassistant/secrets.yaml << EOF
@@ -624,8 +623,35 @@ sudo systemctl start ddns53.timer
 # Add Unifi configuration
 if ! grep -qF -- "igmp-proxy" /usr/lib/unifi/data/sites/default/config.gateway.json; then
   read -p "IoT VLAN: " IOT_VLAN
+  read -p "Raspberry Pi IP address:" PI_IP_ADDRESS
 sudo tee /usr/lib/unifi/data/sites/default/config.gateway.json << EOF
 {
+  "service": {
+    "nat": {
+      "rule": {
+        "5100": {
+          "description": "MASQ Pi to Xiaomi",
+          "outbound-interface": "eth1.${IOT_VLAN}",
+          "source": {
+            "address": "${PI_IP_ADDRESS}"
+          },
+          "type": "masquerade"
+        }
+      }
+    }
+  },
+  "system": {
+    "task-scheduler": {
+      "task": {
+        "igmpcheck": {
+          "executable": {
+            "path": "/config/igmpcheck.sh"
+          },
+          "interval": "5m"
+        }
+      }
+    }
+  },
   "protocols": {
     "igmp-proxy": {
       "interface": {
@@ -648,5 +674,12 @@ sudo tee /usr/lib/unifi/data/sites/default/config.gateway.json << EOF
   }
 }
 EOF
+# #!/bin/bash
+# pidof igmpproxy >/dev/null
+# if [[ $? -ne 0 ]] ; then
+#     echo "restarting igmp-proxy"
+#     /bin/vbash -ic 'restart igmp-proxy'
+# fi
   unset IOT_VLAN
+  unset PI_IP_ADDRESS
 fi
