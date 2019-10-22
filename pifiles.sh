@@ -366,9 +366,6 @@ sensor:
           {%- endif %}
 
 input_boolean:
-  homekit_scene_good_night:
-    name: HomeKit Scene Good Night
-    initial: off
   master_bedroom_tv:
     name: Master Bedroom TV
     initial: off
@@ -376,17 +373,6 @@ input_boolean:
 switch:
   - platform: template
     switches:
-      homekit_scene_good_night:
-        friendly_name: "HomeKit Scene Good Night"
-        value_template: '{{ is_state("input_boolean.homekit_scene_good_night", "on") }}'
-        turn_on:
-          service: script.input_boolean_on
-          data:
-            entity_name: input_boolean.homekit_scene_good_night
-        turn_off:
-          service: script.input_boolean_off
-          data:
-            entity_name: input_boolean.homekit_scene_good_night
       roomba:
         friendly_name: "Laundry Room Roomba"
         value_template: '{{ is_state("vacuum.roomba", "on") }}'
@@ -527,20 +513,6 @@ master_bedroom_tv_off:
     - service: input_boolean.turn_off
       data:
         entity_id: input_boolean.master_bedroom_tv
-input_boolean_on:
-  sequence:
-    - condition: template
-      value_template: '{{ is_state(entity_id, "off") }}'
-    - service: input_boolean.turn_on
-      data_template:
-        entity_id: "{{ entity_id }}"
-input_boolean_off:
-  sequence:
-    - condition: template
-      value_template: '{{ is_state(entity_id, "on") }}'
-    - service: input_boolean.turn_off
-      data_template:
-        entity_id: "{{ entity_id }}"
 EOF
 fi
 
