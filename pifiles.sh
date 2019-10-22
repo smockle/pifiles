@@ -298,7 +298,6 @@ homekit:
     exclude_entities:
       - binary_sensor.updater
       - binary_sensor.remote_ui
-      - media_player.sonos_one
       - sensor.aeon_labs_zw096_smart_switch_6_current
       - sensor.aeon_labs_zw096_smart_switch_6_energy
       - sensor.aeon_labs_zw096_smart_switch_6_power
@@ -325,7 +324,6 @@ cloud:
         - binary_sensor.remote_ui
         - climate.foyer_thermostat
         - climate.landing_thermostat
-        - media_player.sonos_one
         - sensor.aeon_labs_zw096_smart_switch_6_current
         - sensor.aeon_labs_zw096_smart_switch_6_energy
         - sensor.aeon_labs_zw096_smart_switch_6_power
@@ -348,11 +346,6 @@ zwave:
       refresh_value: true
       delay: 1.5
 
-sonos:
-  media_player:
-    hosts:
-      - !secret sonos_ip_address
-
 vacuum:
   - platform: roomba
     host: !secret roomba_ip_address
@@ -372,16 +365,28 @@ sensor:
             {{ states.vacuum.roomba.attributes.battery_level }}
           {%- endif %}
 
+input_boolean:
+  homekit_scene_good_night:
+    name: HomeKit Scene Good Night
+    initial: off
+  master_bedroom_tv:
+    name: Master Bedroom TV
+    initial: off
+
 switch:
   - platform: template
     switches:
-      sonos_one_mute:
-        friendly_name: "Sonos One Mute"
-        value_template: '{{ is_state_attr("media_player.sonos_one", "volume_level", 0.0) }}'
+      homekit_scene_good_night:
+        friendly_name: "HomeKit Scene Good Night"
+        value_template: '{{ is_state("input_boolean.homekit_scene_good_night", "on") }}'
         turn_on:
-          service: script.sonos_one_mute
+          service: script.input_boolean_on
+          data:
+            entity_name: input_boolean.homekit_scene_good_night
         turn_off:
-          service: script.sonos_one_unmute
+          service: script.input_boolean_off
+          data:
+            entity_name: input_boolean.homekit_scene_good_night
       roomba:
         friendly_name: "Laundry Room Roomba"
         value_template: '{{ is_state("vacuum.roomba", "on") }}'
@@ -398,11 +403,6 @@ remote:
   - platform: harmony
     name: Harmony Hub
     host: !secret harmony_ip_address
-
-input_boolean:
-  master_bedroom_tv:
-    name: Master Bedroom TV
-    initial: off
 
 media_player:
   - platform: universal
@@ -480,13 +480,6 @@ EOF
   unset ROOMBA_BLID
   unset ROOMBA_PASSWORD
 fi
-if ! grep -qF -- "sonos_ip_address" ~/.homeassistant/secrets.yaml; then
-  read -p "Sonos IP address: " SONOS_IP_ADDRESS
-tee -a ~/.homeassistant/secrets.yaml << EOF
-sonos_ip_address: "${SONOS_IP_ADDRESS}"
-EOF
-  unset SONOS_IP_ADDRESS
-fi
 
 if [ ! -f ~/.homeassistant/customize.yaml ]; then
   touch ~/.homeassistant/customize.yaml
@@ -534,42 +527,20 @@ master_bedroom_tv_off:
     - service: input_boolean.turn_off
       data:
         entity_id: input_boolean.master_bedroom_tv
-sonos_one_mute:
-  sequence:
-    - service: media_player.volume_mute
-      data:
-        entity_id: media_player.sonos_one
-        is_volume_muted: true
-    - condition: state
-      entity_id: media_player.sonos_one
-      state: 'playing'
-    - service: media_player.media_pause
-      data:
-        entity_id: media_player.sonos_one
-sonos_one_unmute:
+input_boolean_on:
   sequence:
     - condition: template
-      value_template: '{{ is_state_attr("media_player.sonos_one", "volume_level", 0.0) }}'
-    - service: media_player.volume_mute
-      data:
-        entity_id: media_player.sonos_one
-        is_volume_muted: false
-    - service: media_player.volume_set
-      data:
-        entity_id: media_player.sonos_one
-        volume_level: 0.1
-    - condition: and
-      conditions:
-        - condition: state
-          entity_id: media_player.sonos_one
-          state: 'paused'
-        - condition: template
-          value_template: '{{ state_attr("media_player.sonos_one", "media_position")|int > 0 }}'
-        - condition: template
-          value_template: '{{ state_attr("media_player.sonos_one", "media_position")|int < state_attr("media_player.sonos_one", "media_duration")|int }}'
-    - service: media_player.media_play
-      data:
-        entity_id: media_player.sonos_one
+      value_template: '{{ is_state(entity_id, "off") }}'
+    - service: input_boolean.turn_on
+      data_template:
+        entity_id: "{{ entity_id }}"
+input_boolean_off:
+  sequence:
+    - condition: template
+      value_template: '{{ is_state(entity_id, "on") }}'
+    - service: input_boolean.turn_off
+      data_template:
+        entity_id: "{{ entity_id }}"
 EOF
 fi
 
