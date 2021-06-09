@@ -57,13 +57,13 @@ Configures Raspberry Pi 3 & 4 (ARMv8) running Raspberry Pi OS Lite
 
 15. (Optional) First, on the host, create a public + private RSA key pair (e.g. `~/.ssh/id_rsa` & `~/.ssh/id_rsa.pub`): `ssh-keygen -t rsa && chmod 600 ~/.ssh/id_rsa*`, then add a section to `~/.ssh/config` (below). Then, on the Pi, append the contents of the public key to `~/.ssh/authorized_keys`, then prevent further writes: `chmod 444 ~/.ssh/authorized_keys`. Now, you’ll be able to connect to your Raspberry Pi using just `ssh pi`.
 
-   ```Shell
-   tee -a ~/.ssh/config << EOF
-   Host pi
-   HostName YOUR_PI_IP_ADDRESS
-   IdentityFile /Users/YOUR_USERNAME/.ssh/id_rsa
-   User pi
-   EOF
-   ```
+    ```Shell
+    tee -a ~/.ssh/config << EOF
+    Host pi
+    HostName YOUR_PI_IP_ADDRESS
+    IdentityFile /Users/YOUR_USERNAME/.ssh/id_rsa
+    User pi
+    EOF
+    ```
 
 16. Clone this repository on the Pi, and run relevant lines from `pifiles.sh` to complete setup.
