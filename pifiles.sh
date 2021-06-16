@@ -13,6 +13,9 @@ if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
     echo "deb https://deb.nodesource.com/node_16.x buster main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 fi
 
+# Configure `apt`
+sudo echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
+
 # Update package lists
 sudo apt update -y
 sudo apt full-upgrade -y
@@ -55,11 +58,6 @@ fi
 # Set timezone 
 sudo timedatectl set-timezone "America/New_York"
 
-# Use CloudFlare DNS servers
-if ! grep -qF -- "static domain_name_servers=1.1.1.1 1.0.0.1" /etc/dhcpcd.conf; then
-    echo "static domain_name_servers=1.1.1.1 1.0.0.1" | sudo tee -a /etc/dhcpcd.conf
-fi
-
 # Set up Homebridge
 npm install --global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-roomba-stv
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
@@ -92,5 +90,8 @@ sudo systemctl enable homebridge@Xiaomi
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Roomba
 sudo systemctl start homebridge@Xiaomi
+
+# Make syslog readable over SSHFS
+sudo chmod +r /var/log/syslog
 
 # Restore Unifi backup
