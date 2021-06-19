@@ -59,7 +59,7 @@ fi
 sudo timedatectl set-timezone "America/New_York"
 
 # Set up Homebridge
-npm install --global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-roomba-stv
+npm install --global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-roomba2
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
