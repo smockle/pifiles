@@ -22,10 +22,10 @@ sudo apt full-upgrade -y
 sudo apt dist-upgrade -y
 
 # Install packages
-sudo apt install -y zsh \
+sudo apt install -y vim zsh \
     unifi openjdk-8-jre-headless \
     nodejs gcc g++ make python net-tools \
-    git
+    git samba
 
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
@@ -91,7 +91,16 @@ sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Roomba
 sudo systemctl start homebridge@Xiaomi
 
-# Make syslog readable over SSHFS
+# Add Samba user
+sudo smbpasswd -a pi
+
+# Configure Samba
+sudo vi /etc/samba/smb.conf
+
+# Restart Samba
+sudo systemctl restart smbd
+
+# Make syslog readable
 sudo chmod +r /var/log/syslog
 
 # Restore Unifi backup
