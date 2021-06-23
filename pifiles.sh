@@ -105,6 +105,7 @@ sudo systemctl restart smbd
 
 # Advertise Samba over Bonjour with Avahi instead of with the built-in advertiser,
 # to support pretty computer names.
+# https://kremalicious.com/raspberry-pi-file-and-screen-sharing-macos-ios
 sudo tee /etc/avahi/services/smb.service << EOF
 <?xml version="1.0" standalone='no'?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
