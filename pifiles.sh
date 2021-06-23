@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+# Set human-readable hostname
+sudo hostnamectl set-hostname "Raspberry Pi" --pretty
+
 # Add Ubiquiti repository
 if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
     curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
@@ -99,6 +102,26 @@ sudo vi /etc/samba/smb.conf
 
 # Restart Samba
 sudo systemctl restart smbd
+
+# Advertise Samba over Bonjour with Avahi instead of with the built-in advertiser,
+# to support pretty computer names.
+sudo tee /etc/avahi/services/smb.service << EOF
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">Raspberry Pi</name>
+  <service>
+    <type>_smb._tcp</type>
+    <port>445</port>
+  </service>
+  <service>
+    <type>_device-info._tcp</type>
+    <port>0</port>
+    <txt-record>model=TimeCapsule6,116</txt-record>
+  </service>
+</service-group>
+EOF
+sudo service avahi-daemon restart 
 
 # Make syslog readable
 sudo chmod +r /var/log/syslog
