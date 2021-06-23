@@ -103,9 +103,11 @@ sudo vi /etc/samba/smb.conf
 # Restart Samba
 sudo systemctl restart smbd
 
-# Advertise Samba over Bonjour with Avahi instead of with the built-in advertiser,
-# to support pretty computer names.
+# Advertise services over Bonjour
 # https://kremalicious.com/raspberry-pi-file-and-screen-sharing-macos-ios
+
+# Advertise Samba
+# (Use Avahi instead of the built-in advertiser to support pretty computer names.)
 sudo tee /etc/avahi/services/smb.service << EOF
 <?xml version="1.0" standalone='no'?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
@@ -122,6 +124,33 @@ sudo tee /etc/avahi/services/smb.service << EOF
   </service>
 </service-group>
 EOF
+
+# Advertise SFTP
+sudo tee /etc/avahi/services/sftp.service << EOF
+<?xml version="1.0" standalone='no'?>
+ <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+ <service-group>
+   <name replace-wildcards="yes">Raspberry Pi</name>
+   <service>
+     <type>_sftp-ssh._tcp</type>
+     <port>22</port>
+   </service>
+</service-group>
+EOF
+
+# Advertise SSH
+sudo tee /etc/avahi/services/ssh.service << EOF
+<?xml version="1.0" standalone='no'?>
+ <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+ <service-group>
+   <name replace-wildcards="yes">Raspberry Pi</name>
+   <service>
+     <type>_ssh._tcp</type>
+     <port>22</port>
+   </service>
+</service-group>
+EOF
+
 sudo service avahi-daemon restart 
 
 # Make syslog readable
