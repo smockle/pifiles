@@ -103,6 +103,9 @@ sudo vi /etc/samba/smb.conf
 # Restart Samba
 sudo systemctl restart smbd
 
+# Disable nmbd (prevents duplicate entries in Finder > Network)
+sudo update-rc.d nmbd disable
+
 # Advertise services over Bonjour
 # https://kremalicious.com/raspberry-pi-file-and-screen-sharing-macos-ios
 
