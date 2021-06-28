@@ -28,7 +28,7 @@ sudo apt dist-upgrade -y
 sudo apt install -y vim zsh \
     unifi openjdk-8-jre-headless \
     nodejs gcc g++ make python net-tools \
-    git samba
+    git samba hfsplus hfsutils hfsprogs
 
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
