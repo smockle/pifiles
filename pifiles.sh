@@ -164,6 +164,17 @@ sudo service avahi-daemon restart
 # Make syslog readable
 sudo chmod +r /var/log/syslog
 
+# Configure POE+ Hat fan
+# Check temperature with `vcgencmd measure_temp`
+sudo tee -a /boot/config.txt << EOF
+# Raspberry Pi POE+ Hat fan
+dtoverlay=rpi-poe
+dtparam=poe_fan_temp0=50000
+dtparam=poe_fan_temp1=60000
+dtparam=poe_fan_temp2=70000
+dtparam=poe_fan_temp3=80000
+EOF
+
 # Restore Unifi backup
 
 # Set up Time Machine
@@ -172,10 +183,11 @@ sudo chmod +r /var/log/syslog
 # - https://mudge.name/2019/11/12/using-a-raspberry-pi-for-time-machine/
 # - https://gregology.net/2018/09/raspberry-pi-time-machine/ 
 # Format HFS+ Journaled drive
-sudo mkdir /media/TimeMachine
-sudo chown pi: /media/TimeMachine
+sudo mkdir /mnt/Backups
+sudo chown pi: /mnt/Backups
 # Get drive UUID: `ls -lha /dev/disk/by-uuid`
 sudo tee -a /etc/fstab << EOF
-UUID=00000000-0000-0000-0000-000000000000 /media/TimeMachine hfsplus force,nofail,rw,user 0 0
+UUID=00000000-0000-0000-0000-000000000000 /mnt/Backups hfsplus force,nofail,rw,user 0 0
 EOF
 # Reboot
+# If volume mounts as readonly, delete and recreate the mount point: https://askubuntu.com/a/785842/395545
