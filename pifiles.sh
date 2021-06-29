@@ -176,6 +176,6 @@ sudo mkdir /media/TimeMachine
 sudo chown pi: /media/TimeMachine
 # Get drive UUID: `ls -lha /dev/disk/by-uuid`
 sudo tee -a /etc/fstab << EOF
-UUID=00000000-0000-0000-0000-000000000000 /media/TimeMachine hfsplus force,nofail,rw,user,noauto 0 0
+UUID=00000000-0000-0000-0000-000000000000 /media/TimeMachine hfsplus force,nofail,rw,user 0 0
 EOF
 # Reboot
