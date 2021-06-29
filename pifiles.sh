@@ -17,18 +17,29 @@ if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
 fi
 
 # Configure `apt`
-sudo echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
+sudo tee /etc/apt/apt.conf.d/90assumeyes << EOF
+APT::Get::Assume-Yes "true";
+EOF
 
 # Update package lists
-sudo apt update -y
-sudo apt full-upgrade -y
-sudo apt dist-upgrade -y
+sudo apt update
+sudo apt full-upgrade
+sudo apt dist-upgrade
+sudo apt autoremove
 
 # Install packages
 sudo apt install -y vim zsh \
     unifi openjdk-8-jre-headless \
     nodejs gcc g++ make python net-tools \
     git samba hfsplus hfsutils hfsprogs
+
+# Set zsh as the default shell
+if [ "$SHELL" != "/bin/zsh" ]; then
+    sudo chsh -s "/bin/zsh"
+    chsh -s "/bin/zsh"
+fi
+
+# Link dotfiles
 
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
@@ -51,12 +62,6 @@ fi
 
 # Update NPM
 npm i -g npm@latest
-
-# Set zsh as the default shell
-if [ "$SHELL" != "/bin/zsh" ]; then
-    sudo chsh -s "/bin/zsh"
-    chsh -s "/bin/zsh"
-fi
 
 # Set timezone 
 sudo timedatectl set-timezone "America/New_York"
@@ -154,9 +159,23 @@ sudo tee /etc/avahi/services/ssh.service << EOF
 </service-group>
 EOF
 
-sudo service avahi-daemon restart 
+sudo service avahi-daemon restart
 
 # Make syslog readable
 sudo chmod +r /var/log/syslog
 
 # Restore Unifi backup
+
+# Set up Time Machine
+# - https://pimylifeup.com/raspberry-pi-hfs/
+# - https://jeremycollins.net/using-a-raspberry-pi-as-a-nas-mac-os-time-machine-2020-edition
+# - https://mudge.name/2019/11/12/using-a-raspberry-pi-for-time-machine/
+# - https://gregology.net/2018/09/raspberry-pi-time-machine/ 
+# Format HFS+ Journaled drive
+sudo mkdir /media/TimeMachine
+sudo chown pi: /media/TimeMachine
+# Get drive UUID: `ls -lha /dev/disk/by-uuid`
+sudo tee -a /etc/fstab << EOF
+UUID=00000000-0000-0000-0000-000000000000 /media/TimeMachine hfsplus force,nofail,rw,user,noauto 0 0
+EOF
+# Reboot
