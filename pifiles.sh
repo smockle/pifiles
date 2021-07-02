@@ -190,4 +190,4 @@ sudo tee -a /etc/fstab << EOF
 UUID=00000000-0000-0000-0000-000000000000 /mnt/Backups hfsplus force,nofail,rw,user 0 0
 EOF
 # Reboot
-# If volume mounts as readonly, delete and recreate the mount point: https://askubuntu.com/a/785842/395545
+# If volume mounts as readonly, run `sudo fsck.hfsplus /dev/sdaX` then delete and recreate the mount point: https://askubuntu.com/a/785842/395545
