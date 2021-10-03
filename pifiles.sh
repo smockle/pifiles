@@ -7,7 +7,7 @@ sudo hostnamectl set-hostname "Raspberry Pi" --pretty
 # Add Ubiquiti repository
 if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
     curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
-    echo "deb https://www.ui.com/downloads/unifi/debian stable ubiquiti" | sudo tee /etc/apt/sources.list.d/ubiquiti.list
+    echo "deb https://www.ui.com/downloads/unifi/debian oldstable ubiquiti" | sudo tee /etc/apt/sources.list.d/ubiquiti.list
 fi
 
 # Add NodeSource repository
