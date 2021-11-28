@@ -20,19 +20,19 @@ Configures Raspberry Pi 4 Model B (ARMv8) running Raspberry Pi OS Lite
 
 8. Expand the primary root partition on the USB flash drive (kudos [“Install and run Raspbian from a USB Flash Drive”](https://www.stewright.me/2013/05/install-and-run-raspbian-from-a-usb-flash-drive/)):
 
-    ```Shell
-    sudo fdisk /dev/sda
-    p # remember where partition 2 starts
-    d
-    2
-    n
-    p
-    2
-    # recall where partition 2 started
-    <enter>
-    # if asked, do not remove the ext4 signature
-    w
-    ```
+   ```Shell
+   sudo fdisk /dev/sda
+   p # remember where partition 2 starts
+   d
+   2
+   n
+   p
+   2
+   # recall where partition 2 started
+   <enter>
+   # if asked, do not remove the ext4 signature
+   w
+   ```
 
 9. Reboot the Raspberry Pi: `sudo reboot`. Wait a few minutes, then reconnect: `ssh pi@YOUR_PI_IP_ADDRESS`.
 
