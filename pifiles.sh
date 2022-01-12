@@ -4,6 +4,17 @@ set -eo pipefail
 # Set human-readable hostname
 sudo hostnamectl set-hostname "Raspberry Pi" --pretty
 
+# Add Raspbian Buster repository for MongoDB
+sudo tee /etc/apt/preferences.d/99buster.pref << EOF
+# Never prefer packages from buster
+Package: *
+Pin: release n=buster
+Pin-Priority: 1
+EOF
+if [ ! -f /etc/apt/sources.list.d/buster.list ]; then
+    echo "deb http://archive.raspbian.org/raspbian buster main" | sudo tee /etc/apt/sources.list.d/buster.list
+fi
+
 # Add Ubiquiti repository
 if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
     curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
