@@ -41,7 +41,7 @@ sudo apt autoremove
 # Install packages
 sudo apt install -y vim zsh \
     unifi openjdk-8-jre-headless \
-    nodejs gcc g++ make python net-tools \
+    nodejs gcc g++ make python3 net-tools \
     git samba hfsplus hfsutils hfsprogs
 
 # Set zsh as the default shell
