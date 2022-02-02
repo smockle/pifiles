@@ -78,7 +78,7 @@ npm i -g npm@latest
 sudo timedatectl set-timezone "America/New_York"
 
 # Set up Homebridge
-npm install --global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-roomba2
+npm install --global homebridge homebridge-ring homebridge-mi-airpurifier
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
@@ -104,10 +104,8 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Ring
-sudo systemctl enable homebridge@Roomba
 sudo systemctl enable homebridge@Xiaomi
 sudo systemctl start homebridge@Ring
-sudo systemctl start homebridge@Roomba
 sudo systemctl start homebridge@Xiaomi
 
 # Add Samba user
