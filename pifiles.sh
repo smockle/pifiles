@@ -2,47 +2,47 @@
 set -eo pipefail
 
 # Set human-readable hostname
+sudo hostnamectl set-hostname "raspberrypi"
 sudo hostnamectl set-hostname "Raspberry Pi" --pretty
-
-# Add Raspbian Buster repository for MongoDB
-sudo tee /etc/apt/preferences.d/99buster.pref << EOF
-# Never prefer packages from buster
-Package: *
-Pin: release n=buster
-Pin-Priority: 1
-EOF
-if [ ! -f /etc/apt/sources.list.d/buster.list ]; then
-    echo "deb http://archive.raspbian.org/raspbian buster main" | sudo tee /etc/apt/sources.list.d/buster.list
-fi
-
-# Add Ubiquiti repository
-if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
-    curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
-    echo "deb https://www.ui.com/downloads/unifi/debian stable ubiquiti" | sudo tee /etc/apt/sources.list.d/ubiquiti.list
-fi
-
-# Add NodeSource repository
-if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
-    echo "deb https://deb.nodesource.com/node_16.x bullseye main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-fi
 
 # Configure `apt`
 sudo tee /etc/apt/apt.conf.d/90assumeyes << EOF
 APT::Get::Assume-Yes "true";
 EOF
 
+# Update packages
+sudo apt update
+sudo apt full-upgrade
+sudo apt autoremove
+
+# Install pre-requisites
+# Ref: https://help.ui.com/hc/en-us/articles/220066768-UniFi-Network-How-to-Install-and-Update-via-APT-on-Debian-or-Ubuntu
+sudo apt install -y apt-transport-https
+sudo apt-mark hold openjdk-11-*
+
+# Add Ubiquiti repository
+# Ref: https://gist.github.com/jasco/2d39fdc808a1c482ed3c295d0e09c116#configure-apt-unifi-for-arm64
+if [ ! -f /etc/apt/sources.list.d/ubiquiti.list ]; then
+    curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo apt-key add -
+    echo "deb [arch=armhf] https://www.ui.com/downloads/unifi/debian stable ubiquiti" | sudo tee /etc/apt/sources.list.d/ubiquiti.list
+fi
+
+# Add NodeSource repository
+if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+    echo "deb https://deb.nodesource.com/node_16.x focal main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+fi
+
 # Update package lists
 sudo apt update
 sudo apt full-upgrade
-sudo apt dist-upgrade
 sudo apt autoremove
 
 # Install packages
-sudo apt install -y vim zsh \
-    unifi openjdk-8-jre-headless \
-    nodejs gcc g++ make python3 net-tools \
-    git samba hfsplus hfsutils hfsprogs
+sudo apt install -y zsh \
+  unifi openjdk-8-jre-headless \
+  nodejs gcc g++ make net-tools \
+  samba avahi-daemon hfsplus hfsutils hfsprogs
 
 # Set zsh as the default shell
 if [ "$SHELL" != "/bin/zsh" ]; then
@@ -55,12 +55,12 @@ fi
 # Change install location for globally-installed NPM modules
 mkdir -p ~/.npm-global
 npm config set prefix '~/.npm-global'
-if ! grep -qF -- "/home/pi/.npm-global/bin" /etc/zsh/zshenv; then
-    echo 'export PATH="/home/pi/.npm-global/bin:$PATH"' | sudo tee -a /etc/zsh/zshenv
+if ! grep -qF -- "/home/ubuntu/.npm-global/bin" /etc/zsh/zshenv; then
+    echo 'export PATH="/home/ubuntu/.npm-global/bin:$PATH"' | sudo tee -a /etc/zsh/zshenv
 fi
 sudo tee /etc/profile.d/npm-global.sh << EOF
-if [ -d "/home/pi/.npm-global" ] ; then
-    PATH="/home/pi/.npm-global/bin:$PATH"
+if [ -d "/home/ubuntu/.npm-global" ] ; then
+    PATH="/home/ubuntu/.npm-global/bin:$PATH"
 fi
 EOF
 sudo chmod +x /etc/profile.d/npm-global.sh
@@ -89,8 +89,8 @@ After=syslog.target network-online.target
 
 [Service]
 Type=simple
-User=pi
-ExecStart=/home/pi/.npm-global/bin/homebridge -D -U /home/pi/.homebridge/%I
+User=ubuntu
+ExecStart=/home/ubuntu/.npm-global/bin/homebridge -D -U /home/ubuntu/.homebridge/%I
 SyslogIdentifier=homebridge-%I
 Restart=on-failure
 RestartSec=10
@@ -109,7 +109,7 @@ sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Xiaomi
 
 # Add Samba user
-sudo smbpasswd -a pi
+sudo smbpasswd -a ubuntu
 
 # Configure Samba
 sudo vi /etc/samba/smb.conf
@@ -118,7 +118,7 @@ sudo vi /etc/samba/smb.conf
 sudo systemctl restart smbd
 
 # Disable nmbd (prevents duplicate entries in Finder > Network)
-sudo update-rc.d nmbd disable
+sudo systemctl stop nmbd.service
 
 # Advertise services over Bonjour
 # https://kremalicious.com/raspberry-pi-file-and-screen-sharing-macos-ios
@@ -175,7 +175,7 @@ sudo chmod +r /var/log/syslog
 
 # Configure POE+ Hat fan
 # Check temperature with `vcgencmd measure_temp`
-sudo tee -a /boot/config.txt << EOF
+sudo tee -a /boot/firmware/usercfg.txt << EOF
 # Raspberry Pi POE+ Hat fan
 dtoverlay=rpi-poe
 dtparam=poe_fan_temp0=50000
@@ -193,7 +193,7 @@ EOF
 # - https://gregology.net/2018/09/raspberry-pi-time-machine/ 
 # Format HFS+ Journaled drive
 sudo mkdir /mnt/Backups
-sudo chown pi: /mnt/Backups
+sudo chown ubuntu: /mnt/Backups
 # Get drive UUID: `ls -lha /dev/disk/by-uuid`
 sudo tee -a /etc/fstab << EOF
 UUID=00000000-0000-0000-0000-000000000000 /mnt/Backups hfsplus force,nofail,rw,user 0 0
