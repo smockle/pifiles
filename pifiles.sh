@@ -119,6 +119,7 @@ sudo systemctl restart smbd
 
 # Disable nmbd (prevents duplicate entries in Finder > Network)
 sudo systemctl stop nmbd.service
+sudo systemctl disable nmbd.service
 
 # Advertise services over Bonjour
 # https://kremalicious.com/raspberry-pi-file-and-screen-sharing-macos-ios
