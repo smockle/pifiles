@@ -39,7 +39,7 @@ sudo apt full-upgrade
 sudo apt autoremove
 
 # Install packages
-sudo apt install -y zsh \
+sudo apt install -y rpi-eeprom zsh \
   unifi openjdk-8-jre-headless \
   nodejs gcc g++ make net-tools \
   samba avahi-daemon hfsplus hfsutils hfsprogs
