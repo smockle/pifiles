@@ -72,13 +72,13 @@ if [[ "${SHELL}" == */zsh ]]; then
 fi
 
 # Update NPM
-npm i -g npm@latest
+npm i --location=global npm@latest
 
 # Set timezone 
 sudo timedatectl set-timezone "America/New_York"
 
 # Set up Homebridge
-npm install --global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy
+npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
