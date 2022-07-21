@@ -91,7 +91,7 @@ fi
 npm i --location=global npm@latest
 
 # Set up Homebridge
-npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy git+https://git@github.com/pschroeder89/homebridge-levoit-humidifiers.git#v1.7.1
+npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy homebridge-levoit-humidifiers
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
@@ -117,9 +117,11 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Dummy
+sudo systemctl enable homebridge@Levoit
 sudo systemctl enable homebridge@Ring
 sudo systemctl enable homebridge@Xiaomi
 sudo systemctl start homebridge@Dummy
+sudo systemctl start homebridge@Levoit
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Xiaomi
 
