@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+# Configure POE+ Hat fan
+# Check temperature with `vcgencmd measure_temp`
+sudo tee -a /boot/firmware/usercfg.txt << EOF
+# Raspberry Pi POE+ Hat fan
+dtoverlay=rpi-poe
+dtparam=poe_fan_temp0=50000
+dtparam=poe_fan_temp1=60000
+dtparam=poe_fan_temp2=70000
+dtparam=poe_fan_temp3=80000
+EOF
+
+# Reboot
+
+# Set timezone 
+sudo timedatectl set-timezone "America/New_York"
+
 # Set human-readable hostname
 sudo hostnamectl set-hostname "raspberrypi"
 sudo hostnamectl set-hostname "Raspberry Pi" --pretty
@@ -42,7 +58,7 @@ sudo apt autoremove
 sudo apt install -y rpi-eeprom zsh \
   unifi openjdk-8-jre-headless \
   nodejs gcc g++ make net-tools \
-  samba avahi-daemon hfsplus hfsutils hfsprogs
+  samba avahi-daemon
 
 # Set zsh as the default shell
 if [ "$SHELL" != "/bin/zsh" ]; then
@@ -74,11 +90,8 @@ fi
 # Update NPM
 npm i --location=global npm@latest
 
-# Set timezone 
-sudo timedatectl set-timezone "America/New_York"
-
 # Set up Homebridge
-npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy
+npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy git+https://git@github.com/pschroeder89/homebridge-levoit-humidifiers.git#v1.7.1
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
@@ -176,30 +189,6 @@ sudo service avahi-daemon restart
 # Make syslog readable
 sudo chmod +r /var/log/syslog
 
-# Configure POE+ Hat fan
-# Check temperature with `vcgencmd measure_temp`
-sudo tee -a /boot/firmware/usercfg.txt << EOF
-# Raspberry Pi POE+ Hat fan
-dtoverlay=rpi-poe
-dtparam=poe_fan_temp0=50000
-dtparam=poe_fan_temp1=60000
-dtparam=poe_fan_temp2=70000
-dtparam=poe_fan_temp3=80000
-EOF
-
 # Restore Unifi backup
 
-# Set up Time Machine
-# - https://pimylifeup.com/raspberry-pi-hfs/
-# - https://jeremycollins.net/using-a-raspberry-pi-as-a-nas-mac-os-time-machine-2020-edition
-# - https://mudge.name/2019/11/12/using-a-raspberry-pi-for-time-machine/
-# - https://gregology.net/2018/09/raspberry-pi-time-machine/ 
-# Format HFS+ Journaled drive
-sudo mkdir /mnt/Backups
-sudo chown ubuntu: /mnt/Backups
-# Get drive UUID: `ls -lha /dev/disk/by-uuid`
-sudo tee -a /etc/fstab << EOF
-UUID=00000000-0000-0000-0000-000000000000 /mnt/Backups hfsplus force,nofail,rw,user 0 0
-EOF
 # Reboot
-# If volume mounts as readonly, run `sudo fsck.hfsplus /dev/sdaX` then delete and recreate the mount point: https://askubuntu.com/a/785842/395545
