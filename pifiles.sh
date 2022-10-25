@@ -46,7 +46,7 @@ fi
 # Add NodeSource repository
 if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
-    echo "deb https://deb.nodesource.com/node_16.x focal main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    echo "deb https://deb.nodesource.com/node_18.x focal main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 fi
 
 # Update package lists
