@@ -34,7 +34,6 @@ sudo apt autoremove
 # Install pre-requisites
 # Ref: https://help.ui.com/hc/en-us/articles/220066768-UniFi-Network-How-to-Install-and-Update-via-APT-on-Debian-or-Ubuntu
 sudo apt install -y apt-transport-https
-sudo apt-mark hold openjdk-11-*
 
 # Add Ubiquiti repository
 # Ref: https://gist.github.com/jasco/2d39fdc808a1c482ed3c295d0e09c116#configure-apt-unifi-for-arm64
@@ -56,7 +55,7 @@ sudo apt autoremove
 
 # Install packages
 sudo apt install -y rpi-eeprom zsh \
-  unifi openjdk-8-jre-headless \
+  unifi openjdk-11-jre-headless \
   nodejs gcc g++ make net-tools \
   samba avahi-daemon
 
