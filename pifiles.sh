@@ -124,6 +124,34 @@ sudo systemctl start homebridge@Levoit
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Xiaomi
 
+# Schedule nightly reboots
+# https://gist.github.com/hkoba/e05c91ebdd4e2ffd1d79e78e76cf1ff5
+
+sudo tee /etc/systemd/system/scheduled-reboot.service << EOF
+[Unit]
+Description=Scheduled Reboot
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/systemctl --force reboot
+EOF
+
+sudo tee /etc/systemd/system/scheduled-reboot.timer << EOF
+[Unit]
+Description=Scheduled Reboot
+
+[Timer]
+OnCalendar=*-*-* 01:30:00
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now scheduled-reboot.timer
+
+# Verify with `systemctl list-timers --all`
+
 # Add Samba user
 sudo smbpasswd -a ubuntu
 
