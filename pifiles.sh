@@ -90,8 +90,12 @@ fi
 npm i --location=global npm@latest
 
 # Set up Homebridge
-npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy homebridge-levoit-humidifiers
+npm install --location=global homebridge homebridge-ring homebridge-mi-airpurifier homebridge-dummy homebridge-levoit-humidifiers homebridge-rachio-irrigation
 # homebridge-ring includes https://github.com/homebridge/ffmpeg-for-homebridge
+# homebridge-rachio-irrigation requires Webhook Relay
+# 1. Install the client: `curl https://my.webhookrelay.com/webhookrelay/downloads/install-cli.sh | bash`
+# 2. Log in: `relay login`
+# 3. Run as a background service: `sudo relay service install -c /home/ubuntu/.homebridge/Rachio/webhook-relay.yaml --user ubuntu && sudo relay service start`
 
 sudo tee /etc/systemd/system/homebridge@.service << EOF
 [Unit]
@@ -117,10 +121,12 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable homebridge@Dummy
 sudo systemctl enable homebridge@Levoit
+sudo systemctl enable homebridge@Rachio
 sudo systemctl enable homebridge@Ring
 sudo systemctl enable homebridge@Xiaomi
 sudo systemctl start homebridge@Dummy
 sudo systemctl start homebridge@Levoit
+sudo systemctl start homebridge@Rachio
 sudo systemctl start homebridge@Ring
 sudo systemctl start homebridge@Xiaomi
 
