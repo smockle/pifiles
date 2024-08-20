@@ -5,7 +5,7 @@ set -eo pipefail
 # Check temperature with `vcgencmd measure_temp`
 sudo tee -a /boot/firmware/config.txt << EOF
 # Raspberry Pi POE+ Hat fan
-dtoverlay=rpi-poe
+dtoverlay=rpi-poe-plus
 dtparam=poe_fan_temp0=50000
 dtparam=poe_fan_temp1=60000
 dtparam=poe_fan_temp2=70000
