@@ -26,3 +26,46 @@ Configures Raspberry Pi 4 Model B (ARMv8) running Ubuntu Server 24.04 LTS (64-bi
 6. (Optional) Immediately after first login, `apt` operations may fail with `Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process xxxx (unattended-upgr)`. Run `tail -f /var/log/unattended-upgrades/unattended-upgrades-dpkg.log` to follow unattended-upgrades progress.
 
 7. Clone this repository on the Pi, and run relevant lines from `pifiles.sh` to complete setup.
+
+---
+
+## 🥧 Easter Egg: Classic Apple Pie Recipe
+
+Since you're here for *pi*files, here's a delicious **pie** recipe to enjoy while your Raspberry Pi sets itself up!
+
+### Ingredients
+
+**For the crust:**
+- 2½ cups all-purpose flour
+- 1 tsp salt
+- 1 tsp sugar
+- 1 cup (2 sticks) unsalted butter, cold and cubed
+- ¼ to ½ cup ice water
+
+**For the filling:**
+- 6-7 large apples (Granny Smith or Honeycrisp), peeled and sliced
+- ¾ cup granulated sugar
+- ¼ cup brown sugar
+- 2 tbsp all-purpose flour
+- 1 tsp ground cinnamon
+- ¼ tsp ground nutmeg
+- 1 tbsp lemon juice
+- 2 tbsp butter, cut into small pieces
+
+**For assembly:**
+- 1 egg, beaten (for egg wash)
+- 1 tbsp coarse sugar (optional)
+
+### Instructions
+
+1. **Make the crust:** In a large bowl, mix flour, salt, and sugar. Cut in cold butter until mixture resembles coarse crumbs. Gradually add ice water until dough comes together. Divide in half, form into disks, wrap in plastic, and refrigerate for at least 1 hour.
+
+2. **Prepare the filling:** In a large bowl, toss sliced apples with sugars, flour, cinnamon, nutmeg, and lemon juice. Let sit for 15 minutes.
+
+3. **Assemble:** Preheat oven to 375°F (190°C). Roll out one disk of dough and fit into a 9-inch pie pan. Add apple filling and dot with butter pieces. Roll out second disk and place over filling. Trim, seal, and crimp edges. Cut slits in top crust for ventilation.
+
+4. **Bake:** Brush top with egg wash and sprinkle with coarse sugar if desired. Bake for 50-60 minutes until crust is golden and filling is bubbly. Cover edges with foil if browning too quickly.
+
+5. **Cool:** Let cool for at least 2 hours before slicing. Serve with vanilla ice cream!
+
+*Estimated baking time: About the same as running `apt update && apt upgrade` on a fresh Pi installation.* 😄
