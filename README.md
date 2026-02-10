@@ -26,3 +26,5 @@ Configures Raspberry Pi 4 Model B (ARMv8) running Ubuntu Server 24.04 LTS (64-bi
 6. (Optional) Immediately after first login, `apt` operations may fail with `Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process xxxx (unattended-upgr)`. Run `tail -f /var/log/unattended-upgrades/unattended-upgrades-dpkg.log` to follow unattended-upgrades progress.
 
 7. Clone this repository on the Pi, and run relevant lines from `pifiles.sh` to complete setup.
+
+Onwards and upwards!
